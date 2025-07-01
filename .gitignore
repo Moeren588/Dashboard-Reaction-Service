@@ -1,6 +1,8 @@
 ## Config
-
 config.py
+
+# f1_cache
+ff1_cache/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
