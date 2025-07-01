@@ -15,7 +15,7 @@ is running on a seperate VM. MQTT communication will hence only run within the c
 On top of the external libraries of the project, there's also a need for some extra files that are expected,
 but not included for security and setup reasons.
 
-## config
+## MQTT config
 The script will look for a config file in the same directory as the python script. The config file holds all
 your MQTT information. The template looks like this:
 
@@ -25,3 +25,7 @@ MQTT_PORT = 1883 # For unsecure communication running over local network
 MQTT_USERNAME = "service_user_name"
 MQTT_PASSWORD = "your_strong_password" # MQTT password that's also present in your Home Assistant
 ```
+
+## Caching folder
+The FastF1 API can load/save cache, and this is done in a sub directory named 'ff1_cache'.
+This dir is included in gitnore to not spam the repo with old/wasted cache, so this has to be made manually!
