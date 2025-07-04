@@ -2,13 +2,59 @@ import time
 import os
 import json
 from datetime import timedelta
+import paho.mqtt.client as mqtt
+import logging
+
+import mqtt_config
 
 # The path to the file being saved by the other terminal
-LIVETIMING_DATA_FILE = 'british_gp_fp1.txt'
+LIVETIMING_DATA_FILE = 'cache.txt'
+
+MQTT_BROKER_IP = mqtt_config.MQTT_BROKER
+MQTT_PORT = mqtt_config.MQTT_PORT
+MQTT_USERNAME = mqtt_config.MQTT_USERNAME
+MQTT_PASSWORD = mqtt_config.MQTTT_PASSWORD
+
+MQTT_LEADER_TOPIC = "f1/race/leader"
+MQTT_FLAG_TOPIC = "f1/race/flag"
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# --- MQTT Client Setup ---
+def on_connect(client, userdata, flags, rc):
+    """Callback for when the client connects to the broker."""
+    if rc == 0:
+        logging.info("MQTT Connection Successful!")
+    else:
+        logging.error(f"Failed to connect to MQTT, return code {rc}\n")
+
+client = mqtt.Client(client_id="f1_live_data_service")
+client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
+client.on_connect = on_connect
+client.connect(MQTT_BROKER_IP, MQTT_PORT)
+client.loop_start() # Start a background thread to handle MQTT network traffic
 
 print("--- F1 Live Data Parser (v3 - Laps & Flags) ---")
 print(f"Reading new lines from '{LIVETIMING_DATA_FILE}'...")
 print("Press CTRL+C to stop.")
+
+def get_team_info(driver_number_str):
+    """Converts a driver number string to a team name string."""
+    # Driver numbers for the 2025 season (adjust if needed)
+    teams = {
+        '1': "Red Bull", '22': "Red Bull",
+        '16': "Ferrari", '44': "Ferrari",
+        '12': "Mercedes", '63': "Mercedes",
+        '4': "McLaren", '81': "McLaren",
+        '14': "Aston Martin", '18': "Aston Martin",
+        '10': "Alpine", '43': "Alpine",
+        '6': "RB", '30': "RB",
+        '31': "Haas", '87': "Haas",
+        '5': "Sauber", '27': "Sauber",
+        '55': "Williams", '23': "Williams"
+    }
+    return teams.get(driver_number_str, "Unknown")
+
 
 # --- Function to parse lap time strings ---
 def parse_lap_time(time_str):
@@ -44,6 +90,11 @@ def process_line(line, state):
                             driver_name = state['driver_abbreviations'].get(driver_num, driver_num)
                             state['fastest_lap_info']['Time'] = current_lap_time
                             state['fastest_lap_info']['Driver'] = driver_name
+
+                            # --- Get Team Info and Publish to MQTT ---
+                            team_name = get_team_info(driver_num)
+                            leader_payload = json.dumps({"driver": driver_name, "team": team_name, "lap_time": lap_time_value})
+                            client.publish(MQTT_LEADER_TOPIC, leader_payload, retain=True)
                             
                             print("\n" + "="*40)
                             print(f"*** 🚀 NEW FASTEST LAP! 🚀 ***")
@@ -61,6 +112,10 @@ def process_line(line, state):
                     flag = msg_data['Flag']
                     message = msg_data['Message']
                     state['last_flag_message'] = message # Store the message to prevent repeats
+
+                    # --- Publish Flag Status to MQTT ---
+                    flag_payload = json.dumps({"flag": flag, "message": message})
+                    client.publish(MQTT_FLAG_TOPIC, flag_payload, retain=True)
                     
                     print("\n" + "~"*40)
                     print(f"*** 🏁 NEW RACE CONTROL MESSAGE 🏁 ***")
@@ -71,6 +126,8 @@ def process_line(line, state):
 
     except Exception:
         pass
+
+
 
 # We need pandas just for the timedelta conversion
 try:
