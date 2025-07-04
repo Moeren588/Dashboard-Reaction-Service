@@ -29,3 +29,7 @@ MQTT_PASSWORD = "your_strong_password" # MQTT password that's also present in yo
 ## Caching folder
 The FastF1 API can load/save cache, and this is done in a sub directory named 'ff1_cache'.
 This dir is included in gitnore to not spam the repo with old/wasted cache, so this has to be made manually!
+
+# Connecting to the Live timing client
+Run the following command where {cache_file.txt} is the file the live timing will write to
+> python -m fastf1.livetiming save --append cache_file.txt
