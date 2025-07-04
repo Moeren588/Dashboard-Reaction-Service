@@ -1,8 +1,10 @@
 ## Config
 mqtt_config.py
 
-# f1_cache
+# caches
 ff1_cache/
+*cache.txt
+cache*.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
