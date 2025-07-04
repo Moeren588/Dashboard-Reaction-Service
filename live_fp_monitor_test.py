@@ -1,68 +1,104 @@
-import fastf1 as ff1
 import time
 import os
-import pandas as pd
-from datetime import datetime
+import json
+from datetime import timedelta
 
-pd.set_option('display.max_columns', None)
+# The path to the file being saved by the other terminal
+LIVETIMING_DATA_FILE = 'british_gp_fp1.txt'
 
-script_dir = os.path.dirname(os.path.realpath(__file__))
-cache_path = os.path.join (script_dir, 'ff1_cache')
-ff1.Cache.enable_cache(cache_path)
+print("--- F1 Live Data Parser (v3 - Laps & Flags) ---")
+print(f"Reading new lines from '{LIVETIMING_DATA_FILE}'...")
+print("Press CTRL+C to stop.")
 
-print(f"--- F1 Live Free Practice Monitor Testing ---")
-print(f"Looking for British Grand Prix, FP1 ...")
+# --- Function to parse lap time strings ---
+def parse_lap_time(time_str):
+    if not isinstance(time_str, str) or ':' not in time_str:
+        return None
+    full_time_str = f"00:{time_str}"
+    return pd.to_timedelta(full_time_str)
 
+
+def process_line(line, state):
+    """Processes a single line of data from the stream."""
+    try:
+        data_list = eval(line)
+        category = data_list[0]
+        payload = data_list[1]
+        
+        # --- Learn Driver Abbreviations ---
+        if category == 'TimingData' and 'Lines' in payload:
+            for driver_num, driver_data in payload['Lines'].items():
+                if 'Abbreviation' in driver_data:
+                    state['driver_abbreviations'][driver_num] = driver_data['Abbreviation']
+
+        # --- Check for new lap times ---
+        if category == 'TimingData' and 'Lines' in payload:
+            for driver_num, driver_data in payload['Lines'].items():
+                if 'LastLapTime' in driver_data and isinstance(driver_data['LastLapTime'], dict):
+                    lap_time_value = driver_data['LastLapTime'].get('Value')
+                    
+                    if lap_time_value:
+                        current_lap_time = parse_lap_time(lap_time_value)
+
+                        if current_lap_time and current_lap_time < state['fastest_lap_info']['Time']:
+                            driver_name = state['driver_abbreviations'].get(driver_num, driver_num)
+                            state['fastest_lap_info']['Time'] = current_lap_time
+                            state['fastest_lap_info']['Driver'] = driver_name
+                            
+                            print("\n" + "="*40)
+                            print(f"*** 🚀 NEW FASTEST LAP! 🚀 ***")
+                            print(f"Driver: {driver_name}")
+                            print(f"Time: {lap_time_value}")
+                            print("="*40 + "\n")
+        
+        # ==========================================================
+        # --- NEW: Check for Race Control Messages ---
+        # ==========================================================
+        if category == 'RaceControlMessages' and 'Messages' in payload:
+            for msg_id, msg_data in payload['Messages'].items():
+                # Check if it's a flag message and if we haven't seen this exact message before
+                if 'Flag' in msg_data and msg_data['Message'] != state.get('last_flag_message'):
+                    flag = msg_data['Flag']
+                    message = msg_data['Message']
+                    state['last_flag_message'] = message # Store the message to prevent repeats
+                    
+                    print("\n" + "~"*40)
+                    print(f"*** 🏁 NEW RACE CONTROL MESSAGE 🏁 ***")
+                    print(f"Flag: {flag}")
+                    print(f"Message: {message}")
+                    print("~"*40 + "\n")
+
+
+    except Exception:
+        pass
+
+# We need pandas just for the timedelta conversion
 try:
-    session_year = 2025
-    session_gp = 'British Grand Prix'
-    session_type = 'FP1'
+    import pandas as pd
+except ImportError:
+    print("[ERROR] pandas library is required. Please run 'pip install pandas'.")
+    exit()
 
-    schedule = ff1.get_event_schedule(session_year, include_testing=False)
-
-    event = schedule[schedule['EventName'] == session_gp].iloc[0]
-
-    session_start_time = event[f'Session{session_type[-1]}Date']
-
-    print(f"[INFO]: Found session: {event['EventName']} - {session_type}")
-    print(f"[INFO] Scheduled Start Time: {session_start_time.strftime('%Y-%m-%d %H:%M:%S')}")
-
-    now_utc = pd.to_datetime('now', utc=True)
-
-    while now_utc < session_start_time:
-        time_to_wait = (session_start_time - now_utc).total_seconds()
-        print(f"[INFO] Session has not started yet. Waiting for {time_to_wait/60:.2f} minutes...")
-
-        time.sleep(60)
-
-        now_utc = pd.to_datetime('now', utc=True)
-
-    # Load Live Session
-    session = ff1.get_session(2025, "British Grand Prix", "FP1")
-    session.load(laps=True, telemetry=False, weather=False, messages=False)
-    print(f"[SUCCESS]: Session '{session.event['EventName']}' - {session.name} found!")
-    print("Waiting for data ...")
-    print("Press CTRL+C to stop.")
-
-    # Tracking the laps we know
-    known_laps = set()
-
-    while True:
-        #Reload the lap data
-        # session.load_laps()
-        laps = session.laps
-
-        if not laps.empty:
-            for index, lap in laps.iloc[::-1].iterrows():
-                lap_id = f"{lap['Driver']}-{int(lap['LapNumber'])}"
-
-                if lap_id not in known_laps:
-                    print(f"New Lap: {lap['Driver']} | Lap {int(lap['LapNumber'])} | Time: {lap['LapTime']} | Compound: {lap['Compound']} | Stint: {int(lap['Stint'])}")
-                    known_laps.add(lap_id)
-
-        time.sleep(10)
+# --- Main loop to read the file ---
+try:
+    with open(LIVETIMING_DATA_FILE, 'r', encoding='utf-8') as f:
+        f.seek(0, 2)
+        
+        session_state = {
+            "fastest_lap_info": {"Driver": None, "Time": timedelta(days=1)},
+            "driver_abbreviations": {},
+            "last_flag_message": "" # Add this to track the last seen flag message
+        }
+        
+        while True:
+            line = f.readline()
+            if not line:
+                time.sleep(0.5)
+                continue
+            
+            process_line(line, session_state)
 
 except KeyboardInterrupt:
-    print("--- Stopping ---")
-except Exception as e:
-    print(f'[ERROR] An error occured: {e}')
+    print("\n--- Stopping parser ---")
+except FileNotFoundError:
+    print(f"[ERROR] Data file not found: {LIVETIMING_DATA_FILE}")
