@@ -1,5 +1,5 @@
 import time
-import os
+# import os
 import json
 import logging
 from datetime import timedelta
@@ -16,7 +16,8 @@ from mqtt_handler import MQTTHandler
 from f1_teams import get_team_by_driver
 
 # The process_line function remains exactly the same as before
-def process_line(line, state, mqtt_handler):
+def process_line(line: str, state: dict[str, any], mqtt_handler: MQTTHandler) -> None:
+    """Processes the input line to see if it contains relevant information."""
     try:
         data_list = eval(line)
         category, payload = data_list[0], data_list[1]
@@ -37,6 +38,7 @@ def process_line(line, state, mqtt_handler):
                         state['fastest_lap_info'].update(Time=lap_time, Driver=driver_name)
                         
                         team_name = get_team_by_driver(num)
+                        print(f"*** NEW FASTEST LAP:  driver: {driver_name}, team: {team_name}, lap_time: {lap_time_str} ***")
                         leader_payload = json.dumps({"driver": driver_name, "team": team_name, "lap_time": lap_time_str})
                         mqtt_handler.queue_message(leader_topic, leader_payload)
 
@@ -44,6 +46,7 @@ def process_line(line, state, mqtt_handler):
             for msg_id, msg_data in payload['Messages'].items():
                 if 'Flag' in msg_data and msg_data['Message'] != state.get('last_flag_message'):
                     state['last_flag_message'] = msg_data['Message']
+                    print(f"*** NEW RACE CONTROL MESSAGE:  flag: {msg_data['Flag']}, message: {msg_data['Message']} ***")
                     flag_payload = json.dumps({"flag": msg_data['Flag'], "message": msg_data['Message']})
                     mqtt_handler.queue_message(flag_topic, flag_payload)
     except Exception:
@@ -59,7 +62,7 @@ if __name__ == "__main__":
         port=mqtt_config.MQTT_PORT,
         username=mqtt_config.MQTT_USERNAME,
         password=mqtt_config.MQTT_PASSWORD,
-        delay=config.PUBLISH_DELAY # <-- Comes from the public config
+        delay=config.PUBLISH_DELAY
     )
 
     session_state = {

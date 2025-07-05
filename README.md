@@ -1,6 +1,8 @@
 # f1-data-project
 A small project gathering real time data from F1 Races to send to Home Assistant automations using MQTT.
-The project bases itself on the FastF1 Python API.
+The project bases itself on the FastF1 Livetiming API to fetch the data real time.
+
+**Currently should work for Free Pracitce Sessions.**
 
 # My Use-case and setup
 The project is meant for personal use, but if you see any value in it feel free to give it a try!
@@ -15,7 +17,7 @@ is running on a seperate VM. MQTT communication will hence only run within the c
 On top of the external libraries of the project, there's also a need for some extra files that are expected,
 but not included for security and setup reasons.
 
-## MQTT config
+## mqtt_config.py
 The script will look for a config file in the same directory as the python script. The config file holds all
 your MQTT information. The template looks like this:
 
@@ -25,6 +27,12 @@ MQTT_PORT = 1883 # For unsecure communication running over local network
 MQTT_USERNAME = "service_user_name"
 MQTT_PASSWORD = "your_strong_password" # MQTT password that's also present in your Home Assistant
 ```
+
+## config.py
+The config script is a simple script file that simply holds some key variables that allows for some easy customization
+without having to edit multiple scripts. Currently it allows you to set
+    - **Delay timer**: The delay between received live message and MQTT publishing (due to delays in the TV broadcast)
+    - **Cache filename**: the name of the cache file you will listen to with the service scripts.
 
 ## Caching folder
 The FastF1 API can load/save cache, and this is done in a sub directory named 'ff1_cache'.
