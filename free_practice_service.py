@@ -44,6 +44,7 @@ def process_line(line: str, state: dict[str, any], mqtt_handler: MQTTHandler) ->
 
         if category == 'RaceControlMessages' and 'Messages' in payload:
             for msg_id, msg_data in payload['Messages'].items():
+                print(f'Found race control message: {msg_data}')
                 if 'Flag' in msg_data and msg_data['Message'] != state.get('last_flag_message'):
                     state['last_flag_message'] = msg_data['Message']
                     print(f"*** NEW RACE CONTROL MESSAGE:  flag: {msg_data['Flag']}, message: {msg_data['Message']} ***")
