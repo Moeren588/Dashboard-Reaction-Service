@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+### ADDED
+- Qualifying service
+- Debug lines text file that can be pasted into the cache for testing (fetching from Brittish Grand Prix)
+
+### CHANGED
+- Changed the MQTT queueing logic
+
 ## [0.1.0] - 2025.07.05
 
 ### ADDED
