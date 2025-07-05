@@ -1,6 +1,6 @@
 # f1-data-project
 A small project gathering real time data from F1 Races to send to Home Assistant automations using MQTT.
-The project bases itself on the FastF1 Livetiming API to fetch the data real time.
+The project bases itself on the [FastF1](https://docs.fastf1.dev/index.html) Livetiming API to fetch the data real time.
 
 **Currently should work for Free Pracitce Sessions.**
 
@@ -41,3 +41,7 @@ This dir is included in gitnore to not spam the repo with old/wasted cache, so t
 # Connecting to the Live timing client
 Run the following command where {cache_file.txt} is the file the live timing will write to
 > python -m fastf1.livetiming save --append cache_file.txt
+
+>[!WARNING]
+>    The connection to the Live timing client gets disconnected after 2 hours! Read more about this
+>    And possible workrounds on the [FastF1 documentation](https://docs.fastf1.dev/livetiming.html)
