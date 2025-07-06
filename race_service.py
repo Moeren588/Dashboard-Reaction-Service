@@ -15,27 +15,6 @@ import mqtt_config
 from mqtt_handler import MQTTHandler
 from f1_teams import get_team_by_driver
 
-def parse_lap_time(time_str):
-    if not isinstance(time_str, str) or ':' not in time_str: return None
-    return pd.to_timedelta(f"00:{time_str}")
-
-def reset_for_next_session(state):
-    """Resets the state for the next qualifying segment."""
-    if state['current_segment'] == "Q3":
-        logging.info("Q3 Finished. not resetting state.")
-        return
-    
-
-    next_segment = "Q2" if state['current_segment'] == "Q1" else "Q3"
-    logging.info(f"Prepping state for {next_segment}.")
-
-
-    # Reset fastest lap info
-    state['current_segment'] = next_segment
-    state['fastest_lap_info'] = {"Driver": None, "Time": timedelta(days=1)}
-    state['cooldown_active'] = False
-    state['session_end_time'] = None
-
 
 # The process_line function remains exactly the same as before
 def process_line(line: str, state: dict[str, any], mqtt_handler: MQTTHandler) -> None:
@@ -51,19 +30,33 @@ def process_line(line: str, state: dict[str, any], mqtt_handler: MQTTHandler) ->
             for num, data in payload['Lines'].items():
                 if 'Abbreviation' in data: state['driver_abbreviations'][num] = data['Abbreviation']
 
-        ## Check for fastest lap
-        if category == 'TimingData' and 'Lines' in payload:
-            for num, data in payload['Lines'].items():
-                if 'LastLapTime' in data and isinstance(data['LastLapTime'], dict):
-                    lap_time_str = data['LastLapTime'].get('Value')
-                    if lap_time_str and (lap_time := pd.to_timedelta(f"00:{lap_time_str}")) and lap_time < state['fastest_lap_info']['Time']:
-                        driver_name = state['driver_abbreviations'].get(num, num)
-                        state['fastest_lap_info'].update(Time=lap_time, Driver=driver_name)
-                        
-                        team_name = get_team_by_driver(num)
-                        print(f"*** NEW FASTEST LAP:  driver: {driver_name}, team: {team_name}, lap_time: {lap_time_str} ***")
-                        leader_payload = json.dumps({"driver": driver_name, "team": team_name, "lap_time": lap_time_str})
-                        mqtt_handler.queue_message(leader_topic, leader_payload)
+        if category == 'TopThree' and 'Lines' in payload:
+            print(f'Top three detected')
+            if '0' in payload['Lines']:
+                p1_data = payload['Lines']['0']
+                new_leader_num = p1_data.get('RacingNumber')
+
+                print(f'0 in payload. Found {new_leader_num}')
+
+                # If we found a leader and they are different from our stored leader
+                if new_leader_num and new_leader_num != state.get('current_leader_num'):
+                    
+                    # --- LEAD CHANGE DETECTED ---
+                    previous_leader_num = state['current_leader_num']
+                    team_name = get_team_by_driver(new_leader_num)
+                    
+
+                    logging.warning("\n" + "#"*40)
+                    logging.warning(f"*** 👑 NEW RACE LEADER (from TopThree)! 👑 ***")
+                    logging.warning(f"Driver: {p1_data.get('Tla', new_leader_num)} ({team_name})")
+                    logging.warning("#"*40 + "\n")
+
+                    # Update the state with the new leader's number
+                    state['current_leader_num'] = new_leader_num
+                    
+                    # Create and queue the MQTT message
+                    leader_payload = json.dumps({"driver": p1_data.get('Tla', new_leader_num), "team": team_name})
+                    mqtt_handler.queue_message(leader_topic, leader_payload)
 
         ## Check for race control flag messages 
         if category == 'RaceControlMessages' and 'Messages' in payload:
@@ -71,7 +64,7 @@ def process_line(line: str, state: dict[str, any], mqtt_handler: MQTTHandler) ->
                 print(f'Found race control message: {msg_data}')
                 if 'Flag' in msg_data and msg_data['Message'] != state.get('last_flag_message'):
                     state['last_flag_message'] = msg_data['Message']
-                    print(f"*** NEW RACE CONTROL MESSAGE:  flag: {msg_data['Flag']}, message: {msg_data['Message']} ***")
+                    # print(f"*** NEW RACE CONTROL MESSAGE:  flag: {msg_data['Flag']}, message: {msg_data['Message']} ***")
                     flag_payload = json.dumps({"flag": msg_data['Flag'], "message": msg_data['Message']})
                     mqtt_handler.queue_message(flag_topic, flag_payload)
 
@@ -97,12 +90,10 @@ if __name__ == "__main__":
     )
 
     session_state = {
-        "fastest_lap_info": {"Driver": None, "Time": timedelta(days=1)},
+        # "fastest_lap_info": {"Driver": None, "Time": timedelta(days=1)},
         "driver_abbreviations": {},
         "last_flag_message": "",
-        "current_segment": "Q1",
-        "session_end_time": None,
-        "cooldown_active": False,
+        "current_leader_num": None,
     }
 
     try:
@@ -117,10 +108,6 @@ if __name__ == "__main__":
                     time.sleep(0.5)
                 else:
                     process_line(line, session_state, mqtt)
-
-                if session_state['cooldown_active'] and session_state['session_end_time']:
-                    if (datetime.now() - session_state['session_end_time']).total_seconds() > 180:
-                        reset_for_next_session(session_state)
 
     except KeyboardInterrupt:
         logging.info("Service stopped by user.")
