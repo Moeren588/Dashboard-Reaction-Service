@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+## [0.2.0] - 2025.07.06
+
 ### ADDED
 - Qualifying service
+- Racing service
 - Debug lines text file that can be pasted into the cache for testing (fetching from Brittish Grand Prix)
 
 ### CHANGED
