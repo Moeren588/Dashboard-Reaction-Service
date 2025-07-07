@@ -56,6 +56,10 @@ This dir is included in gitnore to not spam the repo with old/wasted cache, so t
 Run the following command where {cache_file.txt} is the file the live timing will write to
 > python -m fastf1.livetiming save --append cache_file.txt
 
+>[!NOTE]
+>    The livetiming starts broadcasting around 5 min before event start. The connection times out after
+>    60s of no broadcasts. So be aware and not start the livetiming too early as it will cut your connection.
+
 >[!WARNING]
 >    The connection to the Live timing client gets disconnected after 2 hours! Read more about this
 >    And possible workrounds on the [FastF1 documentation](https://docs.fastf1.dev/livetiming.html)
