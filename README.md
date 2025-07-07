@@ -2,7 +2,21 @@
 A small project gathering real time data from F1 Races to send to Home Assistant automations using MQTT.
 The project bases itself on the [FastF1](https://docs.fastf1.dev/index.html) Livetiming API to fetch the data real time.
 
-**Currently should work for Free Pracitce Sessions.**
+# Current Status
+[X] Service to run for Free Practice
+[X] Properly tested during a Free Practice
+[X] Service to run for Qualifying
+[] Properly tested during a Qualifying
+[X] Service to run for Race
+[] Properly tested during a Race
+
+Because I started this project right before the British Grand Prix I had to do a mix of testing and developing during the
+sessions.
+
+## Plans going forward
+- Properly test the tool during actual events
+- Refactor the code so the tool only needs one script to run all services
+- Better handling of racing inshidents: Flags and Safety Cars
 
 # My Use-case and setup
 The project is meant for personal use, but if you see any value in it feel free to give it a try!
