@@ -1,4 +1,5 @@
 from datetime import timedelta, datetime
+import json
 try:
     import pandas as pd
 except ImportError:
@@ -31,7 +32,7 @@ def parse_lap_time(time_str: str) -> timedelta | None:
     return pd.to_timedelta(f"00:{time_str}")
 
 def process_lap_time_line(line: str, state: dict[str, any], mqtt_handler) -> None:
-    category, payload = eval(line)
+    category, payload, _ = eval(line)
 
     if category == 'TimingData' and 'Lines' in payload:
         for num, data in payload['Lines'].items():
@@ -42,12 +43,11 @@ def process_lap_time_line(line: str, state: dict[str, any], mqtt_handler) -> Non
                     driver_name = state['driver_abbreviations'].get(num, num)
                     team_name = get_team_by_driver(num)
                     state['fastest_lap_info'].update(Time=lap_time, Driver=driver_name, Team=team_name)
-                    payload = {"driver": driver_name, "team": team_name, "lap_time": lap_time_str}
+                    payload = json.dumps({"driver": driver_name, "team": team_name, "lap_time": lap_time_str})
                     mqtt_handler.queue_message(LEADER_TOPIC, payload)
 
-
 def process_race_lead_line(line: str, state: dict[str, any], mqtt_handler) -> None:
-    category, payload = eval(line)
+    category, payload, _ = eval(line)
     if category == 'TopThree' and 'Lines' in payload and '0' in payload['Lines']:
         p1_data = payload['Lines']['0']
         new_leader_num = p1_data.get('RacingNumber')
@@ -55,32 +55,32 @@ def process_race_lead_line(line: str, state: dict[str, any], mqtt_handler) -> No
             state['current_leader_num'] = new_leader_num
             team_name = get_team_by_driver(new_leader_num)
             state['lead_driver'].update(Driver=p1_data.get('Tla', new_leader_num), Team=team_name)
-            payload = {"driver": p1_data.get('Tla', new_leader_num), "team": team_name}
+            payload = json.dumps({"driver": p1_data.get('Tla', new_leader_num), "team": team_name})
             mqtt_handler.queue_message(LEADER_TOPIC, payload)
 
 def process_race_control_line(line: str, state: dict[str, any], mqtt_handler) -> None:
-    category, payload = eval(line)
+    category, payload, _ = eval(line)
     
     if category == 'RaceControlMessages' and 'Messages' in payload:
         for msg_id, msg_data in payload['Messages'].items():
             ## --- FLAGS ---
             if 'Flag' in msg_data and msg_data['Message'] != state.get('last_flag_message'):
                 state['last_flag_message'] = msg_data['Message']
-                payload = {"flag": msg_data['Flag'], "message": msg_data['Message']}
+                payload = json.dumps({"flag": msg_data['Flag'], "message": msg_data['Message']})
                 mqtt_handler.queue_message(FLAG_TOPIC, payload)
                 # CHEQUERED flag, important for quali
                 if msg_data['Flag'] == 'CHEQUERED' and state['session_type'] == 'qualifying' and not state['cooldown_active']:
                     state['cooldown_active'] = True
                     state['session_end_time'] = datetime.now()
             ## --- SAFETY CAR ---
-            elif 'SafetyCar' in msg_data:
-                if msg_data['Status'] == 'DEPLOYED':
+            elif msg_data['Category'] == 'SafetyCar':
+                if msg_data['Status'] == 'DEPLOYED' and not state['safety_car']:
                     state['safety_car'] = True
-                    payload = {"flag": "SAFETY CAR", "message": msg_data['Mode']}
+                    payload = json.dumps({"flag": "SAFETY CAR", "message": msg_data['Mode']})
                     mqtt_handler.queue_message(FLAG_TOPIC, payload)
                 elif msg_data['Status'] == 'ENDING' or msg_data['Status'] == 'IN THIS LAP':
                     state['safety_car'] = False
-                    payload = {"flag": "GREEN", "message" : "GREEN FLAG"}
+                    payload = json.dumps({"flag": "GREEN", "message" : "GREEN FLAG"})
                     mqtt_handler.queue_message(FLAG_TOPIC, payload)
 
 def reset_for_next_session(state):

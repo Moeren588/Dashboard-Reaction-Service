@@ -52,7 +52,7 @@ class MQTTHandler:
         publish_time = datetime.now() + self.publish_delay
         with self._lock:
             self._pending_messages.append((publish_time, topic, payload))
-        logging.info(f"Event queued for topic '{topic}'. Will be sent at {publish_time.strftime('%H:%M:%S')}")
+        logging.info(f"Event queued for topic '{topic}' with payload '{payload}'. Will be sent at {publish_time.strftime('%H:%M:%S')}")
 
     def disconnect(self):
         self.client.disconnect()
