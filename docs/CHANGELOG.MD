@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+### ADDED
+- Safety Car message handling
+
+### CHANGED
+- Refactored the code to avoid the three different scripts
+  - Now has one main.py point of enter, mandatory arguments are required now.
+
 ## [0.2.0] - 2025.07.06
 
 ### ADDED
