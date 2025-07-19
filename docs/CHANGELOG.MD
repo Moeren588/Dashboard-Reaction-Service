@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+## [0.3.0] - 2025-07-19
+
 ### ADDED
 - Safety Car message handling
 - 'immediate' optional arg for mqtt.qeue_message, letting you bypass the delay
@@ -14,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### CHANGED
 - Refactored the code to avoid the three different scripts
   - Now has one main.py point of enter, mandatory arguments are required now.
+
+### REMOVED
+- The individual service module (now replaced by a combined main and utils)
+
+### DEPRECATED
+- 'free_practice_service', 'qualifying_service' and 'race_service'
 
 ## [0.2.0] - 2025.07.06
 
