@@ -80,7 +80,7 @@ def process_race_control_line(line: str, state: dict[str, any], mqtt_handler) ->
                     mqtt_handler.queue_message(FLAG_TOPIC, payload)
                 elif msg_data['Status'] == 'ENDING' or msg_data['Status'] == 'IN THIS LAP':
                     state['safety_car'] = False
-                    payload = json.dumps({"flag": "GREEN", "message" : "GREEN FLAG"})
+                    payload = json.dumps({"flag": "CLEAR", "message" : "SAFETY CAR ENDING"})
                     mqtt_handler.queue_message(FLAG_TOPIC, payload)
 
 def reset_for_next_session(state):
