@@ -47,9 +47,13 @@ class MQTTHandler:
 
             time.sleep(0.5)
 
-    def queue_message(self, topic, payload):
+    def queue_message(self, topic: str, payload: str, immediate : bool = False) -> None:
         """Adds a message to the Publishing Queue"""
-        publish_time = datetime.now() + self.publish_delay
+        if immediate:
+            publish_time = datetime.now()
+        else:
+            publish_time = datetime.now() + self.publish_delay
+        
         with self._lock:
             self._pending_messages.append((publish_time, topic, payload))
         logging.info(f"Event queued for topic '{topic}' with payload '{payload}'. Will be sent at {publish_time.strftime('%H:%M:%S')}")

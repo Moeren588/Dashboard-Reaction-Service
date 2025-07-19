@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ADDED
 - Safety Car message handling
+- 'immediate' optional arg for mqtt.qeue_message, letting you bypass the delay
 
 ### CHANGED
 - Refactored the code to avoid the three different scripts

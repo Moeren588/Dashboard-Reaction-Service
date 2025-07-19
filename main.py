@@ -2,6 +2,7 @@ import time
 import logging
 import argparse
 from datetime import timedelta, datetime
+import json
 import os
 
 import config
@@ -9,19 +10,48 @@ import mqtt_config
 import f1_utils
 from mqtt_handler import MQTTHandler
 
+SESSION_MAP = {
+    'p' : 'practice',
+    'fp' : 'practice',
+    'practice' : 'practice',
+    'q' : 'qualifying',
+    'sq' : 'qualifying',
+    'qualifying' : 'qualifying',
+    'sprint qualifying' : 'qualifying',  
+    'r' : 'race',
+    'sr' : 'race',
+    'race' : 'race',
+    'sprint race' : 'race',
+    }
+
+
 parser = argparse.ArgumentParser(description="F1 Live Data Service")
 parser.add_argument(
     "session_type",
-    choices=['practice', 'free practice', 'qualifying', 'sprint qualifying', 'race', 'sprint race'],
     help="The type of session to monitor: practice, free practice, qualifying, sprint qualifying, race, sprint race"
 )
+parser.add_argument(
+    '-fl', '--force-lead',
+    metavar='TEAM_NAME',
+    type=str,
+    default=None,
+    help="(Optional) Force an initial leader state on startup. E.g., --force-leader Ferrari",
+)
+
 args = parser.parse_args()
+
+normalized_session = SESSION_MAP.get(args.session_type.lower())
+
+if not normalized_session:
+    logging.error(f"Error: Invalid session type '{args.session_type}'.")
+    logging.error(f"Valid options are: {', '.join(SESSION_MAP.keys())}")
+    exit(1)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
     session_state = {
-        "session_type" : None,
+        "session_type" : normalized_session,
         "fastest_lap_info": {"Time": timedelta(days=1), "Driver": None, "Team": None},
         "driver_abbreviations": {},
         "current_race_lead": {"Driver": None, "Team": None},
@@ -33,14 +63,11 @@ if __name__ == "__main__":
         "safety_car": False,
     }
 
-    if args.session_type == 'race' or args.session_type == 'sprint race':
-        session_state['session_type'] = 'race'
+    if session_state['session_type'] == 'race':
         race_lead_process = f1_utils.process_race_lead_line
-    elif args.session_type == 'qualifying' or args.session_type == 'sprint qualifying':
-        session_state['session_type'] = 'qualifying'
+    elif session_state['session_type'] == 'qualifying':
         race_lead_process = f1_utils.process_lap_time_line
     else:
-        session_state['session_type'] = 'practice'
         race_lead_process = f1_utils.process_lap_time_line
 
     mqtt = MQTTHandler(
@@ -50,6 +77,11 @@ if __name__ == "__main__":
         password=mqtt_config.MQTT_PASSWORD,
         delay=config.PUBLISH_DELAY
     )
+
+    if args.force_lead:
+        logging.info(f"Setting initial leading team as {args.force_lead}")
+        forced_lead_payload = json.dumps({"driver": "FORCE", "team": args.force_lead})
+        mqtt.queue_message(f1_utils.LEADER_TOPIC, forced_lead_payload, immediate=True)
 
     try:
         cache_file = config.CACHE_FILENAME
