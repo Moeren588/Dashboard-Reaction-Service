@@ -25,7 +25,7 @@ SESSION_MAP = {
     }
 
 
-parser = argparse.ArgumentParser(description="F1 Live Data Service")
+parser = argparse.ArgumentParser(description="F1 Dahsboard Reaction Service")
 parser.add_argument(
     "session_type",
     help="The type of session to monitor: practice, free practice, qualifying, sprint qualifying, race, sprint race"
@@ -60,6 +60,7 @@ if __name__ == "__main__":
         "session_end_time": None,
         "quali_session" : "Q1",
         "last_flag_message": "",
+        "red_flagged": False,
         "safety_car": False,
     }
 
@@ -85,7 +86,7 @@ if __name__ == "__main__":
 
     try:
         cache_file = config.CACHE_FILENAME
-        with open(cache_file, 'r', encoding='utf-8') as f:
+        with open(cache_file, 'r', encoding='utf-8', errors='replace') as f:
             logging.info(f"Service started. Reading live data from '{cache_file}'...")
             f.seek(0, 2)
             while True:

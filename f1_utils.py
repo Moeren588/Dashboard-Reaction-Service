@@ -25,6 +25,11 @@ def get_team_by_driver(driver_number_string: str) -> str:
     
     return teams.get(driver_number_string, "Unknown")
 
+def rebroadcast_leader(state: dict[str, any], mqtt_handler):
+    """Resends the lead, usefull after flag or Safety Car events"""
+    payload = json.dumps({"driver": state["current_race_lead"]["Driver"], "team": state["current_race_lead"]["Team"]})
+    mqtt_handler.queue_message(LEADER_TOPIC, payload)
+
 def parse_lap_time(time_str: str) -> timedelta | None:
     """Converts a time string to a timedelta object"""
     if not (isinstance(time_str, str) or ':' not in time_str):
@@ -68,6 +73,8 @@ def process_race_control_line(line: str, state: dict[str, any], mqtt_handler) ->
                 state['last_flag_message'] = msg_data['Message']
                 payload = json.dumps({"flag": msg_data['Flag'], "message": msg_data['Message']})
                 mqtt_handler.queue_message(FLAG_TOPIC, payload)
+                # if msg_data['Flag'] == "RED":
+                #     state['red_flagged'] = True
                 # CHEQUERED flag, important for quali
                 if msg_data['Flag'] == 'CHEQUERED' and state['session_type'] == 'qualifying' and not state['cooldown_active']:
                     state['cooldown_active'] = True
@@ -82,14 +89,15 @@ def process_race_control_line(line: str, state: dict[str, any], mqtt_handler) ->
                     state['safety_car'] = False
                     payload = json.dumps({"flag": "CLEAR", "message" : "SAFETY CAR ENDING"})
                     mqtt_handler.queue_message(FLAG_TOPIC, payload)
+                    rebroadcast_leader(state, mqtt_handler)
 
 def reset_for_next_session(state):
     """Resets the state for the next qualifying segment."""
 
-    next_segment = "Q2" if state['current_segment'] == "Q1" else "Q3"
+    next_segment = "Q2" if state['quali_session'] == "Q1" else "Q3"
 
     # Reset fastest lap info
-    state['current_segment'] = next_segment
+    state['quali_session'] = next_segment
     state['fastest_lap_info'] = {"Driver": None, "Time": timedelta(days=1)}
     state['cooldown_active'] = False
     state['session_end_time'] = None
