@@ -1,5 +1,8 @@
 from datetime import timedelta, datetime
 import json
+import ast
+import time
+
 try:
     import pandas as pd
 except ImportError:
@@ -90,6 +93,40 @@ def process_race_control_line(line: str, state: dict[str, any], mqtt_handler) ->
                     payload = json.dumps({"flag": "CLEAR", "message" : "SAFETY CAR ENDING"})
                     mqtt_handler.queue_message(FLAG_TOPIC, payload)
                     rebroadcast_leader(state, mqtt_handler)
+
+def process_session_start_line(line: str, state: dict[str, any]) -> None:
+    """Detects the official start of a session and records the timestamp."""
+    # Don't bother parsing if we've already found the start, could be repeats in Quali
+    if state.get("true_session_start_time"):
+        return
+    
+    try:
+        category, payload, _ = ast.literal_eval(line)
+    except (ValueError, SyntaxError):
+        return
+    
+    session_type = state["session_type"]
+    start_detected = False
+
+    # Logic for FP and Quali (Pit Exit Open)
+    if session_type in ('practice', 'qualifying'):
+        if category == 'RaceControlMessages':
+            for msg in payload.get('Messages', []):
+                if msg.get('Message') == 'GREEN LIGHT - PIT EXIT OPEN':
+                    start_detected = True
+    # Logic for races <- This needs calibration as I am sceptic to Gemini's implementation
+    elif session_type == 'race':
+        if category == 'SessionData':
+            for series_data in payload.get('StatusSeries', {}).values():
+                if isinstance(series_data, dict) and series_data.get('SessionStatus') == 'Started':
+                    start_detected = True
+                    break
+
+    if start_detected:
+        state["true_session_start_time"] = time.monotonic()
+        # Sets a 5 min cutoff timer for "bothering" to deal with MQTT incomming messags for "session start"
+        state["calibration_window_end_time"] = time.monotonic() + 300
+
 
 def reset_for_next_session(state):
     """Resets the state for the next qualifying segment."""
