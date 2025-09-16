@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+## [0.4.0] - 2025-09-16
+
 ### ADDED
 - Functionality to receive MQTT messages as well
 - Logic to set offsets to the delay_timer based on user input from HA

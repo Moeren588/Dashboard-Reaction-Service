@@ -175,3 +175,57 @@ actions:
 >[!NOTE]
 >   The `input_boolean.f1_mode` is a simple helper toggle so I can have an overall "on-off" switch
 >   on my dashboard.
+
+## Broadcasting
+The time delay between when the python service receives messages, and when you see it on the broadcast
+can be very hard to detect. That is why the service also listens in on channels that allows for adjustments
+in the broadcasting delay. Currently it has two functions `calibrate start` and `Adjust`.
+
+### Calibrate Start
+The service should detect in the messages it receives when it sees the session start message. With the automation
+setup below, you can have a button you press when you see the broadcast start. The service will then use this
+difference to set the MQTT publishing delay.
+```yaml
+alias: F1 Calibrate Start
+description: Send the session start time for calibrating the delay
+sequence:
+  - data:
+      topic: f1/service/control
+      payload: CALIBRATE_START
+    action: mqtt.publish
+```
+
+### Adjust
+Another way is to publish direct adjustment values that is added or subtracted to the current delay. The example
+below shows how the automation script and the button is set up, which would allow you to create some button variations 
+based on one automation script
+```yaml
+alias: F1 Adjust Delay
+description: Adjusts the F1 MQTT delay by a specific amount.
+fields:
+  adjustment_value:
+    description: The number of seconds to add or subtract from the delay
+    example: "1.0"
+sequence:
+  - data:
+      topic: f1/service/control
+      payload: ADJUST:{{ adjustment_value }}
+    action: mqtt.publish
+mode: single
+```
+
+button example
+```yaml
+- type: button
+        name: Delay +1s
+        icon: mdi:plus-box
+        tap_action:
+          action: call-service
+          service: script.f1_adjust_delay
+          data:
+            adjustment_value: "1.0"
+```
+
+>[!NOTE]
+> It is important that the payload starts with 'ADJUST:' followed by the
+> value!
