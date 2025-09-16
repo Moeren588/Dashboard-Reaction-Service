@@ -6,16 +6,18 @@ import time
 from datetime import datetime, timedelta
 from queue import Queue
 
-CONTROL_TOPIC = "f1/service/control"
+from mqtt_topics import MqttTopics
+
 
 class MQTTHandler:
     def __init__(self, broker_ip, port, username, password, delay, command_queue: Queue):
         self.client = mqtt.Client(client_id="f1_data_service_publisher")
+        self.client.will_set(MqttTopics.RUNNING_STATUS_TOPIC, payload="OFF", qos=1, retain=True)
+
         self.client.username_pw_set(username, password)
         self.client.on_message = self._on_message
         self.command_queue = command_queue
         self.client.on_connect = self._on_connect
-        # self.client.on_message = self._on_message
         
         self.publish_delay = timedelta(seconds=delay)
         self._pending_messages = []
@@ -31,21 +33,22 @@ class MQTTHandler:
 
     def _on_connect(self, client, userdata, flags, rc):
         if rc == 0:
+            client.subscribe(MqttTopics.CONTROL_TOPIC)
+            self.client.publish(MqttTopics.RUNNING_STATUS_TOPIC, payload="ON", qos=1, retain=True)
+            self.client.publish(MqttTopics.PUBLISHING_DELAY_TOPIC, payload=self.publish_delay.total_seconds(), qos=1, retain=True)
+
             logging.info("MQTT Connection Succseful!")
-            client.subscribe(CONTROL_TOPIC)
-            logging.info("Subscribed to control topic")
         else:
             logging.error(f"Failed to connect to MQTT, return code {rc}")
 
     def _on_message(self, client, userdata, msg):
         """Handles incoming MQTT messages. Mainly for DRS CONTROL"""
         # logging.info(f"Received message on control topic: {msg.topic}")
-        if msg.topic != CONTROL_TOPIC:
+        if msg.topic != MqttTopics.CONTROL_TOPIC:
             return
         
         try:
             command = msg.payload.decode('utf-8')
-            logging.info(f"Received command on control topic: {command}")
 
             if command == "CALIBRATE_START":
                 self.command_queue.put("CALIBRATE_START")
@@ -66,6 +69,7 @@ class MQTTHandler:
 
         logging.info(f'Setting delay to {new_delay_seconds}s')
         self.publish_delay = timedelta(seconds=new_delay_seconds)
+        self.client.publish(MqttTopics.PUBLISHING_DELAY_TOPIC, payload=round(new_delay_seconds, 2), qos=1, retain=True)
 
     def _publisher_loop(self):
         while True:
@@ -97,5 +101,7 @@ class MQTTHandler:
         logging.info(f"Event queued for topic '{topic}' with payload '{payload}'. Will be sent at {publish_time.strftime('%H:%M:%S')}")
 
     def disconnect(self):
+        """Gracefully Disconnect from MQTT"""
+        self.client.publish(MqttTopics.RUNNING_STATUS_TOPIC, payload="OFF", qos=1, retain=True)
         self.client.disconnect()
         self.client.loop_stop()

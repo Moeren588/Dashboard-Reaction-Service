@@ -3,13 +3,13 @@ import json
 import ast
 import time
 
+from mqtt_topics import MqttTopics
+
 try:
     import pandas as pd
 except ImportError:
     raise
 
-LEADER_TOPIC = "f1/race/leader"
-FLAG_TOPIC = "f1/race/flag_status"
 
 def get_team_by_driver(driver_number_string: str) -> str:
     """Returns the team name based on driver number"""
@@ -31,7 +31,7 @@ def get_team_by_driver(driver_number_string: str) -> str:
 def rebroadcast_leader(state: dict[str, any], mqtt_handler):
     """Resends the lead, usefull after flag or Safety Car events"""
     payload = json.dumps({"driver": state["current_race_lead"]["Driver"], "team": state["current_race_lead"]["Team"]})
-    mqtt_handler.queue_message(LEADER_TOPIC, payload)
+    mqtt_handler.queue_message(MqttTopics.LEADER_TOPIC, payload)
 
 def parse_lap_time(time_str: str) -> timedelta | None:
     """Converts a time string to a timedelta object"""
@@ -52,7 +52,7 @@ def process_lap_time_line(line: str, state: dict[str, any], mqtt_handler) -> Non
                     team_name = get_team_by_driver(num)
                     state['fastest_lap_info'].update(Time=lap_time, Driver=driver_name, Team=team_name)
                     payload = json.dumps({"driver": driver_name, "team": team_name, "lap_time": lap_time_str})
-                    mqtt_handler.queue_message(LEADER_TOPIC, payload)
+                    mqtt_handler.queue_message(MqttTopics.LEADER_TOPIC, payload)
 
 def process_race_lead_line(line: str, state: dict[str, any], mqtt_handler) -> None:
     category, payload, _ = eval(line)
@@ -62,15 +62,16 @@ def process_race_lead_line(line: str, state: dict[str, any], mqtt_handler) -> No
         if new_leader_num and new_leader_num != state.get('current_leader_num'):
             state['current_leader_num'] = new_leader_num
             team_name = get_team_by_driver(new_leader_num)
-            state['lead_driver'].update(Driver=p1_data.get('Tla', new_leader_num), Team=team_name)
+            state['current_race_lead'].update(Driver=p1_data.get('Tla', new_leader_num), Team=team_name)
             payload = json.dumps({"driver": p1_data.get('Tla', new_leader_num), "team": team_name})
-            mqtt_handler.queue_message(LEADER_TOPIC, payload)
+            mqtt_handler.queue_message(MqttTopics.LEADER_TOPIC, payload)
 
 def process_race_control_line(line: str, state: dict[str, any], mqtt_handler) -> None:
     category, payload, _ = ast.literal_eval(line)
+
     
     if category == 'RaceControlMessages' and 'Messages' in payload:
-        for msg_data in payload.get('Messages', []):
+        for msg_data in payload.get('Messages', {}).values():
             if not isinstance(msg_data, dict): continue
 
             ## --- FLAGS ---
@@ -81,7 +82,7 @@ def process_race_control_line(line: str, state: dict[str, any], mqtt_handler) ->
                     continue
                     
                 payload = json.dumps({"flag": msg_data['Flag'], "message": msg_data['Message']})
-                mqtt_handler.queue_message(FLAG_TOPIC, payload)
+                mqtt_handler.queue_message(MqttTopics.FLAG_TOPIC, payload)
                 # if msg_data['Flag'] == "RED":
                 #     state['red_flagged'] = True
                 # CHEQUERED flag, important for quali
@@ -93,11 +94,11 @@ def process_race_control_line(line: str, state: dict[str, any], mqtt_handler) ->
                 if msg_data['Status'] == 'DEPLOYED' and not state['safety_car']:
                     state['safety_car'] = True
                     payload = json.dumps({"flag": "SAFETY CAR", "message": msg_data['Mode']})
-                    mqtt_handler.queue_message(FLAG_TOPIC, payload)
+                    mqtt_handler.queue_message(MqttTopics.FLAG_TOPIC, payload)
                 elif msg_data['Status'] == 'ENDING' or msg_data['Status'] == 'IN THIS LAP':
                     state['safety_car'] = False
                     payload = json.dumps({"flag": "CLEAR", "message" : "SAFETY CAR ENDING"})
-                    mqtt_handler.queue_message(FLAG_TOPIC, payload)
+                    mqtt_handler.queue_message(MqttTopics.FLAG_TOPIC, payload)
                     rebroadcast_leader(state, mqtt_handler)
 
 def process_session_start_line(line: str, state: dict[str, any]) -> None:
@@ -130,7 +131,6 @@ def process_session_start_line(line: str, state: dict[str, any]) -> None:
                     break
 
     if start_detected:
-        print('start detected')
         state["true_session_start_time"] = time.monotonic()
         # Sets a 5 min cutoff timer for "bothering" to deal with MQTT incomming messags for "session start"
         state["calibration_window_end_time"] = time.monotonic() + 300

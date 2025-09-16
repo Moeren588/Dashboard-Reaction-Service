@@ -100,7 +100,6 @@ if __name__ == "__main__":
                 try:
                     command = command_queue.get_nowait()
                     if command == "CALIBRATE_START":
-                        logging.info("received 'CALIBRATE_START' command from HA")
 
                         # Ignore calibration after time limit as to avoid any "accidental presses"
                         if session_state['calibration_window_end_time'] and time.monotonic() > session_state["calibration_window_end_time"]:
