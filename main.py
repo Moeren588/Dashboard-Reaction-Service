@@ -109,7 +109,7 @@ if __name__ == "__main__":
                         if session_state["true_session_start_time"]:
                             new_delay = time.monotonic() - session_state["true_session_start_time"]
                             mqtt.set_delay(new_delay)
-                            logging.info("received 'CALIBRATE_START' command from HA and set it to {new_delay}s")
+                            logging.info(f"received 'CALIBRATE_START' command from HA and set it to {new_delay}s")
                 except queue.Empty:
                     pass
 

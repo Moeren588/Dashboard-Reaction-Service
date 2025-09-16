@@ -67,13 +67,19 @@ def process_race_lead_line(line: str, state: dict[str, any], mqtt_handler) -> No
             mqtt_handler.queue_message(LEADER_TOPIC, payload)
 
 def process_race_control_line(line: str, state: dict[str, any], mqtt_handler) -> None:
-    category, payload, _ = eval(line)
+    category, payload, _ = ast.literal_eval(line)
     
     if category == 'RaceControlMessages' and 'Messages' in payload:
-        for msg_id, msg_data in payload['Messages'].items():
+        for msg_data in payload.get('Messages', []):
+            if not isinstance(msg_data, dict): continue
+
             ## --- FLAGS ---
             if 'Flag' in msg_data and msg_data['Message'] != state.get('last_flag_message'):
                 state['last_flag_message'] = msg_data['Message']
+                # Ignoring green flag for Pit Exit Open
+                if msg_data['Flag'] == 'GREEN' and 'PIT EXIT OPEN' in msg_data['Message']:
+                    continue
+                    
                 payload = json.dumps({"flag": msg_data['Flag'], "message": msg_data['Message']})
                 mqtt_handler.queue_message(FLAG_TOPIC, payload)
                 # if msg_data['Flag'] == "RED":
@@ -112,8 +118,9 @@ def process_session_start_line(line: str, state: dict[str, any]) -> None:
     if session_type in ('practice', 'qualifying'):
         if category == 'RaceControlMessages':
             for msg in payload.get('Messages', []):
-                if msg.get('Message') == 'GREEN LIGHT - PIT EXIT OPEN':
+                if isinstance(msg, dict) and msg.get('Message') == 'GREEN LIGHT - PIT EXIT OPEN':
                     start_detected = True
+                    break
     # Logic for races <- This needs calibration as I am sceptic to Gemini's implementation
     elif session_type == 'race':
         if category == 'SessionData':
@@ -123,6 +130,7 @@ def process_session_start_line(line: str, state: dict[str, any]) -> None:
                     break
 
     if start_detected:
+        print('start detected')
         state["true_session_start_time"] = time.monotonic()
         # Sets a 5 min cutoff timer for "bothering" to deal with MQTT incomming messags for "session start"
         state["calibration_window_end_time"] = time.monotonic() + 300

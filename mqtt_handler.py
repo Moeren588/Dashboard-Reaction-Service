@@ -6,7 +6,6 @@ import time
 from datetime import datetime, timedelta
 from queue import Queue
 
-# APP_CONTROL_DELTA_DELAY_TOPIC = "f1/service/delta_delay"
 CONTROL_TOPIC = "f1/service/control"
 
 class MQTTHandler:
@@ -33,20 +32,23 @@ class MQTTHandler:
     def _on_connect(self, client, userdata, flags, rc):
         if rc == 0:
             logging.info("MQTT Connection Succseful!")
+            client.subscribe(CONTROL_TOPIC)
+            logging.info("Subscribed to control topic")
         else:
             logging.error(f"Failed to connect to MQTT, return code {rc}")
 
     def _on_message(self, client, userdata, msg):
         """Handles incoming MQTT messages. Mainly for DRS CONTROL"""
+        # logging.info(f"Received message on control topic: {msg.topic}")
         if msg.topic != CONTROL_TOPIC:
             return
         
         try:
             command = msg.payload.decode('utf-8')
-            logging.info(f"Received command on control topic: '{command}")
+            logging.info(f"Received command on control topic: {command}")
 
-            if command == "CALIBRATION_START":
-                self.command_queue.put("CALIBRATION_START")
+            if command == "CALIBRATE_START":
+                self.command_queue.put("CALIBRATE_START")
 
             elif command.startswith("ADJUST:"):
                 _, value_str = command.split(":")
@@ -59,8 +61,10 @@ class MQTTHandler:
 
     def set_delay(self, new_delay_seconds: float):
         if new_delay_seconds < 0:
+            logging.warning(f'Received less than 0 new_delay_seconds: {new_delay_seconds}')
             new_delay_seconds = 0
 
+        logging.info(f'Setting delay to {new_delay_seconds}s')
         self.publish_delay = timedelta(seconds=new_delay_seconds)
 
     def _publisher_loop(self):
