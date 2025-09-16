@@ -1,5 +1,8 @@
 from datetime import timedelta, datetime
 import json
+import ast
+import time
+
 try:
     import pandas as pd
 except ImportError:
@@ -24,6 +27,11 @@ def get_team_by_driver(driver_number_string: str) -> str:
     }
     
     return teams.get(driver_number_string, "Unknown")
+
+def rebroadcast_leader(state: dict[str, any], mqtt_handler):
+    """Resends the lead, usefull after flag or Safety Car events"""
+    payload = json.dumps({"driver": state["current_race_lead"]["Driver"], "team": state["current_race_lead"]["Team"]})
+    mqtt_handler.queue_message(LEADER_TOPIC, payload)
 
 def parse_lap_time(time_str: str) -> timedelta | None:
     """Converts a time string to a timedelta object"""
@@ -59,15 +67,23 @@ def process_race_lead_line(line: str, state: dict[str, any], mqtt_handler) -> No
             mqtt_handler.queue_message(LEADER_TOPIC, payload)
 
 def process_race_control_line(line: str, state: dict[str, any], mqtt_handler) -> None:
-    category, payload, _ = eval(line)
+    category, payload, _ = ast.literal_eval(line)
     
     if category == 'RaceControlMessages' and 'Messages' in payload:
-        for msg_id, msg_data in payload['Messages'].items():
+        for msg_data in payload.get('Messages', []):
+            if not isinstance(msg_data, dict): continue
+
             ## --- FLAGS ---
             if 'Flag' in msg_data and msg_data['Message'] != state.get('last_flag_message'):
                 state['last_flag_message'] = msg_data['Message']
+                # Ignoring green flag for Pit Exit Open
+                if msg_data['Flag'] == 'GREEN' and 'PIT EXIT OPEN' in msg_data['Message']:
+                    continue
+                    
                 payload = json.dumps({"flag": msg_data['Flag'], "message": msg_data['Message']})
                 mqtt_handler.queue_message(FLAG_TOPIC, payload)
+                # if msg_data['Flag'] == "RED":
+                #     state['red_flagged'] = True
                 # CHEQUERED flag, important for quali
                 if msg_data['Flag'] == 'CHEQUERED' and state['session_type'] == 'qualifying' and not state['cooldown_active']:
                     state['cooldown_active'] = True
@@ -82,14 +98,51 @@ def process_race_control_line(line: str, state: dict[str, any], mqtt_handler) ->
                     state['safety_car'] = False
                     payload = json.dumps({"flag": "CLEAR", "message" : "SAFETY CAR ENDING"})
                     mqtt_handler.queue_message(FLAG_TOPIC, payload)
+                    rebroadcast_leader(state, mqtt_handler)
+
+def process_session_start_line(line: str, state: dict[str, any]) -> None:
+    """Detects the official start of a session and records the timestamp."""
+    # Don't bother parsing if we've already found the start, could be repeats in Quali
+    if state.get("true_session_start_time"):
+        return
+    
+    try:
+        category, payload, _ = ast.literal_eval(line)
+    except (ValueError, SyntaxError):
+        return
+    
+    session_type = state["session_type"]
+    start_detected = False
+
+    # Logic for FP and Quali (Pit Exit Open)
+    if session_type in ('practice', 'qualifying'):
+        if category == 'RaceControlMessages':
+            for msg in payload.get('Messages', []):
+                if isinstance(msg, dict) and msg.get('Message') == 'GREEN LIGHT - PIT EXIT OPEN':
+                    start_detected = True
+                    break
+    # Logic for races <- This needs calibration as I am sceptic to Gemini's implementation
+    elif session_type == 'race':
+        if category == 'SessionData':
+            for series_data in payload.get('StatusSeries', {}).values():
+                if isinstance(series_data, dict) and series_data.get('SessionStatus') == 'Started':
+                    start_detected = True
+                    break
+
+    if start_detected:
+        print('start detected')
+        state["true_session_start_time"] = time.monotonic()
+        # Sets a 5 min cutoff timer for "bothering" to deal with MQTT incomming messags for "session start"
+        state["calibration_window_end_time"] = time.monotonic() + 300
+
 
 def reset_for_next_session(state):
     """Resets the state for the next qualifying segment."""
 
-    next_segment = "Q2" if state['current_segment'] == "Q1" else "Q3"
+    next_segment = "Q2" if state['quali_session'] == "Q1" else "Q3"
 
     # Reset fastest lap info
-    state['current_segment'] = next_segment
+    state['quali_session'] = next_segment
     state['fastest_lap_info'] = {"Driver": None, "Time": timedelta(days=1)}
     state['cooldown_active'] = False
     state['session_end_time'] = None

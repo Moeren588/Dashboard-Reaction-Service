@@ -24,3 +24,9 @@ Race Control Flag Messages:
 ['RaceControlMessages', {'Messages': {'72': {'Utc': '2025-07-06T14:10:18', 'Lap': 4, 'Category': 'SafetyCar', 'Status': 'ENDING', 'Mode': 'VIRTUAL SAFETY CAR', 'Message': 'VIRTUAL SAFETY CAR ENDING'}}}, '2025-07-06T14:10:17.861Z']
 ['RaceControlMessages', {'Messages': {'97': {'Utc': '2025-07-06T14:29:14', 'Lap': 14, 'Category': 'SafetyCar', 'Status': 'DEPLOYED', 'Mode': 'SAFETY CAR', 'Message': 'SAFETY CAR DEPLOYED'}}}, '2025-07-06T14:29:14.267Z']
 ['RaceControlMessages', {'Messages': {'99': {'Utc': '2025-07-06T14:38:36', 'Lap': 17, 'Category': 'SafetyCar', 'Status': 'IN THIS LAP', 'Mode': 'SAFETY CAR', 'Message': 'SAFETY CAR IN THIS LAP'}}}, '2025-07-06T14:38:36.526Z']
+
+Race Start Messages:
+- Free practice and Qualifying:
+['RaceControlMessages', {'Messages': [{'Utc': '2025-09-06T14:00:00', 'Category': 'Flag', 'Flag': 'GREEN', 'Scope': 'Track', 'Message': 'GREEN LIGHT - PIT EXIT OPEN'}], '_kf': True}, '2025-09-06T14:00:00.189Z']
+- Race:
+['SessionData', {'StatusSeries': {'4': {'Utc': '2025-09-07T13:03:34.805Z', 'SessionStatus': 'Started'}}}, '2025-09-07T13:03:34.805Z']
