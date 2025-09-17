@@ -18,6 +18,8 @@ Race Lead Change (Race):
 Race Control Flag Messages:
 ['RaceControlMessages', {'Messages': {'56': {'Utc': '2025-07-05T11:39:56', 'Category': 'Flag', 'Flag': 'YELLOW', 'Scope': 'Sector', 'Sector': 2, 'Message': 'YELLOW IN TRACK SECTOR 2'}}}, '2025-07-05T11:39:56.262Z']
 ['RaceControlMessages', {'Messages': {'4': {'Utc': '2025-07-04T15:16:09', 'Category': 'Flag', 'Flag': 'DOUBLE YELLOW', 'Scope': 'Sector', 'Sector': 8, 'Message': 'DOUBLE YELLOW IN TRACK SECTOR 8'}}}, '2025-07-04T15:16:09.257Z']
+['RaceControlMessages', {'Messages': {'13': {'Utc': '2025-09-06T14:22:44', 'Category': 'Flag', 'Flag': 'CLEAR', 'Scope': 'Sector', 'Sector': 8, 'Message': 'CLEAR IN TRACK SECTOR 8'}}}, '2025-09-06T14:22:43.772Z']
+['RaceControlMessages', {'Messages': {'13': {'Utc': '2025-09-06T14:22:44', 'Category': 'Flag', 'Flag': 'CLEAR', 'Scope': 'Sector', 'Sector': 2, 'Message': 'CLEAR IN TRACK SECTOR 8'}}}, '2025-09-06T14:22:43.772Z']
 ['RaceControlMessages', {'Messages': {'50': {'Utc': '2025-07-05T11:33:58', 'Category': 'Flag', 'Flag': 'RED', 'Scope': 'Track', 'Message': 'RED FLAG'}}}, '2025-07-05T11:33:58.102Z']
 ['RaceControlMessages', {'Messages': {'14': {'Utc': '2025-07-05T14:27:49', 'Category': 'Flag', 'Flag': 'CHEQUERED', 'Scope': 'Track', 'Message': 'CHEQUERED FLAG'}}}, '2025-07-05T14:27:49.153Z']
 ['RaceControlMessages', {'Messages': {'67': {'Utc': '2025-07-06T14:05:48', 'Lap': 2, 'Category': 'SafetyCar', 'Status': 'DEPLOYED', 'Mode': 'VIRTUAL SAFETY CAR', 'Message': 'VIRTUAL SAFETY CAR DEPLOYED'}}}, '2025-07-06T14:05:47.647Z']

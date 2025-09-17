@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+## [0.5.0] - 2025-09-17
+
+## ADDED
+- mqtt_topics module
+- Better flag handling
+
+## FIXED
+- Error with setting race lead in race mode
+- Not reading Flag messages anymore
+
+### CHANGED
+- Moved all MQTT topics to its own file (mqtt_topics module)
+  - Changed how topics were accessed in scripts
+- How flags and inshidents are handled: Now more generalized session status rather than seperate "red flag" or "safety car"
+- Changed state name for 'current_race_lead' to 'current_session_lead'
+- all `eval()` to `ast.literal_eval()`
+- using `time.monotonic()` instead of `datetime.now()` for qualifying session monitoring
+- Rewrote the README
+
+### REMOVED
+- Generic logging line that was sent when MQTT received a message
+- f1_service.py file from project
+- live_fp_monitoring_test.py from project
+
+### DEPRECATED
+- f1_service module
+- live_fp_monitor_test module
+
 ## [0.4.0] - 2025-09-16
 
 ### ADDED
