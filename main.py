@@ -54,14 +54,13 @@ if __name__ == "__main__":
         "session_type" : normalized_session,
         "fastest_lap_info": {"Time": timedelta(days=1), "Driver": None, "Team": None},
         "driver_abbreviations": {},
-        "current_race_lead": {"Driver": None, "Team": None},
+        "current_session_lead": {"Driver": None, "Team": None},
         "current_leader_num": None,
         "cooldown_active": False,
         "session_end_time": None,
         "quali_session" : "Q1",
-        "last_flag_message": "",
-        "red_flagged": False,
-        "safety_car": False,
+        "yellow_flags": set(), # Storing the Sectors of the Yellow flags
+        "race_state": "GREEN", # Storing in what the race status is: Green is good
         # For calibration
         "true_session_start_time": None,
         "calibration_window_end_time": None,

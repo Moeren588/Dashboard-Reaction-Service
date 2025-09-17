@@ -30,7 +30,7 @@ def get_team_by_driver(driver_number_string: str) -> str:
 
 def rebroadcast_leader(state: dict[str, any], mqtt_handler):
     """Resends the lead, usefull after flag or Safety Car events"""
-    payload = json.dumps({"driver": state["current_race_lead"]["Driver"], "team": state["current_race_lead"]["Team"]})
+    payload = json.dumps({"driver": state["current_session_lead"]["Driver"], "team": state["current_session_lead"]["Team"]})
     mqtt_handler.queue_message(MqttTopics.LEADER_TOPIC, payload)
 
 def parse_lap_time(time_str: str) -> timedelta | None:
@@ -51,6 +51,7 @@ def process_lap_time_line(line: str, state: dict[str, any], mqtt_handler) -> Non
                     driver_name = state['driver_abbreviations'].get(num, num)
                     team_name = get_team_by_driver(num)
                     state['fastest_lap_info'].update(Time=lap_time, Driver=driver_name, Team=team_name)
+                    state['current_session_lead'].update(Driver=driver_name, Team=team_name)
                     payload = json.dumps({"driver": driver_name, "team": team_name, "lap_time": lap_time_str})
                     mqtt_handler.queue_message(MqttTopics.LEADER_TOPIC, payload)
 
@@ -62,11 +63,12 @@ def process_race_lead_line(line: str, state: dict[str, any], mqtt_handler) -> No
         if new_leader_num and new_leader_num != state.get('current_leader_num'):
             state['current_leader_num'] = new_leader_num
             team_name = get_team_by_driver(new_leader_num)
-            state['current_race_lead'].update(Driver=p1_data.get('Tla', new_leader_num), Team=team_name)
+            state['current_session_lead'].update(Driver=p1_data.get('Tla', new_leader_num), Team=team_name)
             payload = json.dumps({"driver": p1_data.get('Tla', new_leader_num), "team": team_name})
             mqtt_handler.queue_message(MqttTopics.LEADER_TOPIC, payload)
 
 def process_race_control_line(line: str, state: dict[str, any], mqtt_handler) -> None:
+    """Evaluates Race Control Lines, these include Flags and Safety Cars"""
     category, payload, _ = ast.literal_eval(line)
 
     
@@ -75,28 +77,48 @@ def process_race_control_line(line: str, state: dict[str, any], mqtt_handler) ->
             if not isinstance(msg_data, dict): continue
 
             ## --- FLAGS ---
-            if 'Flag' in msg_data and msg_data['Message'] != state.get('last_flag_message'):
-                state['last_flag_message'] = msg_data['Message']
+            if 'Flag' in msg_data and msg_data['Message']:
+                # state['last_flag_message'] = msg_data['Message']
                 # Ignoring green flag for Pit Exit Open
                 if msg_data['Flag'] == 'GREEN' and 'PIT EXIT OPEN' in msg_data['Message']:
                     continue
-                    
+                
+                flag = msg_data['Flag']
                 payload = json.dumps({"flag": msg_data['Flag'], "message": msg_data['Message']})
-                mqtt_handler.queue_message(MqttTopics.FLAG_TOPIC, payload)
-                # if msg_data['Flag'] == "RED":
-                #     state['red_flagged'] = True
-                # CHEQUERED flag, important for quali
-                if msg_data['Flag'] == 'CHEQUERED' and state['session_type'] == 'qualifying' and not state['cooldown_active']:
+                # mqtt_handler.queue_message(MqttTopics.FLAG_TOPIC, payload)
+                # 🚩 RED FLAGS 🚩
+                if flag == "RED" and state['race_state'] != "RED":
+                    state['race_state'] = "RED"
+                    state['yellow_flags'].clear()
+                    mqtt_handler.queue_message(MqttTopics.FLAG_TOPIC, payload)
+                # 🟡 YELLOW FLAGS 🟡
+                elif (flag == "YELLOW" or flag == "DOUBLE YELLOW") and (state['race_state'] != "RED" and state['race_state'] != "SAFETY CAR"):
+                    sector = msg_data.get('Sector')
+                    state['yellow_flags'].add(sector)
+                    if state['race_state'] != "YELLOW":
+                        state['race_state'] = "YELLOW"
+                        mqtt_handler.queue_message(MqttTopics.FLAG_TOPIC, payload)
+                # 👍 CLEAR Flags 👍
+                elif flag == "CLEAR":
+                    if state['race_state'] == "YELLOW":
+                        sector = msg_data.get('Sector')
+                        state['yellow_flags'].discard(sector)
+                        if len(state['yellow_flags']) == 0:
+                            state['race_state'] = "GREEN"
+                            rebroadcast_leader(state, mqtt_handler)
+                # 🏁 CHEQUERED flag, important for quali
+                elif flag == 'CHEQUERED' and state['session_type'] == 'qualifying' and not state['cooldown_active']:
                     state['cooldown_active'] = True
                     state['session_end_time'] = datetime.now()
             ## --- SAFETY CAR ---
             elif msg_data['Category'] == 'SafetyCar':
-                if msg_data['Status'] == 'DEPLOYED' and not state['safety_car']:
-                    state['safety_car'] = True
+                if msg_data['Status'] == 'DEPLOYED' and state['race_state'] != "SAFETY CAR":
+                    state['race_state'] = "SAFETY CAR"
+                    state['yellow_flags'].clear()
                     payload = json.dumps({"flag": "SAFETY CAR", "message": msg_data['Mode']})
                     mqtt_handler.queue_message(MqttTopics.FLAG_TOPIC, payload)
                 elif msg_data['Status'] == 'ENDING' or msg_data['Status'] == 'IN THIS LAP':
-                    state['safety_car'] = False
+                    state['race_state'] = "GREEN"
                     payload = json.dumps({"flag": "CLEAR", "message" : "SAFETY CAR ENDING"})
                     mqtt_handler.queue_message(MqttTopics.FLAG_TOPIC, payload)
                     rebroadcast_leader(state, mqtt_handler)
@@ -143,7 +165,7 @@ def reset_for_next_session(state):
 
     # Reset fastest lap info
     state['quali_session'] = next_segment
-    state['fastest_lap_info'] = {"Driver": None, "Time": timedelta(days=1)}
+    state['fastest_lap_info'] = {"Driver": None, "Time": timedelta(minutes=3)} # Thinking that 3 minues will stop the random sudden fastest laps at the beginning of the session
     state['cooldown_active'] = False
     state['session_end_time'] = None
 

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## ADDED
 - mqtt_topics module
+- Better flag handling
 
 ## FIXED
 - Error with setting race lead in race mode
@@ -17,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### CHANGED
 - Moved all MQTT topics to its own file (mqtt_topics module)
   - Changed how topics were accessed in scripts
+- How flags and inshidents are handled: Now more generalized session status rather than seperate "red flag" or "safety car"
+- Changed state name for 'current_race_lead' to 'current_session_lead'
 
 ### REMOVED
 - Generic logging line that was sent when MQTT received a message
