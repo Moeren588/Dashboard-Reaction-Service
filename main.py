@@ -127,7 +127,7 @@ if __name__ == "__main__":
                     session_state['cooldown_active'] and 
                     session_state['session_end_time'] and 
                     session_state['quali_session'] != 'Q3'):
-                    if (datetime.now() - session_state['session_end_time']).total_seconds() > 180:
+                    if (time.monotonic() - session_state['session_end_time']) > 180:
                         logging.info("Resetting for next Qualifying session")
                         f1_utils.reset_for_next_session(session_state)
     

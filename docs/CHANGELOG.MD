@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+## [0.5.0] - 2025-09-17
+
 ## ADDED
 - mqtt_topics module
 - Better flag handling
@@ -20,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Changed how topics were accessed in scripts
 - How flags and inshidents are handled: Now more generalized session status rather than seperate "red flag" or "safety car"
 - Changed state name for 'current_race_lead' to 'current_session_lead'
+- all `eval()` to `ast.literal_eval()`
+- using `time.monotonic()` instead of `datetime.now()` for qualifying session monitoring
+- Rewrote the README
 
 ### REMOVED
 - Generic logging line that was sent when MQTT received a message

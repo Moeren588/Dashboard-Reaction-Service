@@ -40,7 +40,7 @@ def parse_lap_time(time_str: str) -> timedelta | None:
     return pd.to_timedelta(f"00:{time_str}")
 
 def process_lap_time_line(line: str, state: dict[str, any], mqtt_handler) -> None:
-    category, payload, _ = eval(line)
+    category, payload, _ = ast.literal_eval(line)
 
     if category == 'TimingData' and 'Lines' in payload:
         for num, data in payload['Lines'].items():
@@ -56,7 +56,7 @@ def process_lap_time_line(line: str, state: dict[str, any], mqtt_handler) -> Non
                     mqtt_handler.queue_message(MqttTopics.LEADER_TOPIC, payload)
 
 def process_race_lead_line(line: str, state: dict[str, any], mqtt_handler) -> None:
-    category, payload, _ = eval(line)
+    category, payload, _ = ast.literal_eval(line)
     if category == 'TopThree' and 'Lines' in payload and '0' in payload['Lines']:
         p1_data = payload['Lines']['0']
         new_leader_num = p1_data.get('RacingNumber')
@@ -109,7 +109,7 @@ def process_race_control_line(line: str, state: dict[str, any], mqtt_handler) ->
                 # 🏁 CHEQUERED flag, important for quali
                 elif flag == 'CHEQUERED' and state['session_type'] == 'qualifying' and not state['cooldown_active']:
                     state['cooldown_active'] = True
-                    state['session_end_time'] = datetime.now()
+                    state['session_end_time'] = time.monotonic()
             ## --- SAFETY CAR ---
             elif msg_data['Category'] == 'SafetyCar':
                 if msg_data['Status'] == 'DEPLOYED' and state['race_state'] != "SAFETY CAR":
