@@ -4,6 +4,9 @@ The Dashboard Reaction Service (or DRS for short) is a small project gathering r
 Home Assistant automations using MQTT. The project bases itself on the [FastF1](https://github.com/theOehrly/Fast-F1) 
 Livetiming API to fetch the data real time.
 
+![HA-Automation_3](https://github.com/user-attachments/assets/1aa65c1d-8c3a-40bb-9d64-06335587a05e)
+
+
 ## Features
 * Sync smart lights with the F1 broadcast leader, matching their team colors.
 * Automate dynamic lighting scenes for Safety Car, VSC, and Red Flag events.
@@ -34,7 +37,9 @@ MQTT_PASSWORD = "your_strong_password" # MQTT password that's also present in yo
 ```
 2. `config.py`: Contains key variables for the service. You can edit the existing file to set your preferred initial broadcast delay and cache filename.
 
-> [!NOTE] A Note on the `PUBLISH_DELAY`
+> [!NOTE]
+> **A Note on the `PUBLISH_DELAY`**
+> 
 > You might wonder why there's a delay between the script receiving a message and publishing it to MQTT. This is the most important setting for syncing the service with what you see on screen.
 >
 > The official F1 timing data, which this tool uses via the FastF1 API, often arrives many seconds (some report up to a minute!) **before** you see the corresponding action on your F1TV or television broadcast. This is due to natural broadcast and streaming delays.
