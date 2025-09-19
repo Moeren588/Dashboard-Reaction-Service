@@ -9,6 +9,7 @@ import config
 import mqtt_config
 import f1_utils
 from mqtt_handler import MQTTHandler
+from mqtt_topics import MqttTopics
 
 SESSION_MAP = {
     'p' : 'practice',
@@ -87,7 +88,7 @@ if __name__ == "__main__":
     if args.force_lead:
         logging.info(f"Setting initial leading team as {args.force_lead}")
         forced_lead_payload = json.dumps({"driver": "FORCE", "team": args.force_lead})
-        mqtt.queue_message(f1_utils.LEADER_TOPIC, forced_lead_payload, immediate=True)
+        mqtt.queue_message(MqttTopics.LEADER_TOPIC, forced_lead_payload, immediate=True)
 
     try:
         cache_file = config.CACHE_FILENAME

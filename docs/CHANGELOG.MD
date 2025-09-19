@@ -7,13 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+## [0.5.1] - 2025-09-19
+
+### FIXED
+- Trying to access LEADER_TOPIC from `f1_utils` in `main.py`
+
 ## [0.5.0] - 2025-09-17
 
-## ADDED
+### ADDED
 - mqtt_topics module
 - Better flag handling
 
-## FIXED
+### FIXED
 - Error with setting race lead in race mode
 - Not reading Flag messages anymore
 
