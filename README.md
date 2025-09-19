@@ -324,6 +324,10 @@ mode: single
 > It is important that the payload starts with 'ADJUST:' followed by the
 > value!
 
+**Screenshot of my delay adjustment buttons**
+<img width="1079" height="1010" alt="Screenshot of my Home Assistant delay and calibartion buttons" src="https://github.com/user-attachments/assets/7e0308a2-30a0-4115-bf62-077320eef0c3" />
+
+
 # MQTT Topic Reference
 The service communicates using the following MQTT topics.
 
@@ -374,6 +378,7 @@ You might want to test that your setup works, and since the main functionality o
 - More testing, using it in as many sessions as I can:
   - Specifically flags are uncertain, and delay adjustments.
 - Make it more stable
+  - Implement tests to the code as well
 - Replace the pandas library used (absolutely not needed after all)
 - Move the drivers dict out of the f1_utils script
 - General code improvements
