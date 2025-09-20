@@ -11,6 +11,8 @@ import f1_utils
 from mqtt_handler import MQTTHandler
 from mqtt_topics import MqttTopics
 
+DRS_VERSION = "0.5.2"
+
 SESSION_MAP = {
     'p' : 'practice',
     'fp' : 'practice',
@@ -93,7 +95,7 @@ if __name__ == "__main__":
     try:
         cache_file = config.CACHE_FILENAME
         with open(cache_file, 'r', encoding='utf-8', errors='replace') as f:
-            logging.info(f"Service started {session_state['session_type']} session. Reading live data from '{cache_file}'...")
+            logging.info(f"DRS {DRS_VERSION} started {session_state['session_type']} session. Reading live data from '{cache_file}'...")
             f.seek(0, 2)
             while True:
             # Try block to look for user input delay from HA-
@@ -117,7 +119,7 @@ if __name__ == "__main__":
                     time.sleep(0.1)
                 else:
                     try:
-                        f1_utils.process_session_start_line(line, session_state)
+                        f1_utils.process_session_data_line(line, session_state, mqtt)
                         race_lead_process(line, session_state, mqtt)
                         f1_utils.process_race_control_line(line, session_state, mqtt)
                     except Exception as e:

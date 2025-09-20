@@ -2,6 +2,7 @@ from datetime import timedelta, datetime
 import json
 import ast
 import time
+import logging
 
 from mqtt_topics import MqttTopics
 
@@ -30,8 +31,17 @@ def get_team_by_driver(driver_number_string: str) -> str:
 
 def rebroadcast_leader(state: dict[str, any], mqtt_handler):
     """Resends the lead, usefull after flag or Safety Car events"""
+    if not state['current_session_lead']['Team']: return #Early return if no leader has been set
     payload = json.dumps({"driver": state["current_session_lead"]["Driver"], "team": state["current_session_lead"]["Team"]})
     mqtt_handler.queue_message(MqttTopics.LEADER_TOPIC, payload)
+
+def return_to_green(state, mqtt_handler, payload_message):
+    """Returns the session to GREEN flag status"""
+    logging.info(f'Returning to GREEN flag status from {state["race_state"]}')
+    state['race_state'] = "GREEN"
+    payload = json.dumps({"flag": "GREEN", "message": payload_message})
+    mqtt_handler.queue_message(MqttTopics.FLAG_TOPIC, payload)
+    rebroadcast_leader(state, mqtt_handler)
 
 def parse_lap_time(time_str: str) -> timedelta | None:
     """Converts a time string to a timedelta object"""
@@ -71,14 +81,12 @@ def process_race_control_line(line: str, state: dict[str, any], mqtt_handler) ->
     """Evaluates Race Control Lines, these include Flags and Safety Cars"""
     category, payload, _ = ast.literal_eval(line)
 
-    
     if category == 'RaceControlMessages' and 'Messages' in payload:
         for msg_data in payload.get('Messages', {}).values():
             if not isinstance(msg_data, dict): continue
 
             ## --- FLAGS ---
             if 'Flag' in msg_data and msg_data['Message']:
-                # state['last_flag_message'] = msg_data['Message']
                 # Ignoring green flag for Pit Exit Open
                 if msg_data['Flag'] == 'GREEN' and 'PIT EXIT OPEN' in msg_data['Message']:
                     continue
@@ -104,10 +112,10 @@ def process_race_control_line(line: str, state: dict[str, any], mqtt_handler) ->
                         sector = msg_data.get('Sector')
                         state['yellow_flags'].discard(sector)
                         if len(state['yellow_flags']) == 0:
-                            state['race_state'] = "GREEN"
-                            rebroadcast_leader(state, mqtt_handler)
+                            return_to_green(state, mqtt_handler, "GREEN FLAG, ALL YELLOW CLEARED")
                 # 🏁 CHEQUERED flag, important for quali
                 elif flag == 'CHEQUERED' and state['session_type'] == 'qualifying' and not state['cooldown_active']:
+                    logging.info(f'CHEQUERED Flag for {state["quali_session"]}')
                     state['cooldown_active'] = True
                     state['session_end_time'] = time.monotonic()
             ## --- SAFETY CAR ---
@@ -118,45 +126,28 @@ def process_race_control_line(line: str, state: dict[str, any], mqtt_handler) ->
                     payload = json.dumps({"flag": "SAFETY CAR", "message": msg_data['Mode']})
                     mqtt_handler.queue_message(MqttTopics.FLAG_TOPIC, payload)
                 elif msg_data['Status'] == 'ENDING' or msg_data['Status'] == 'IN THIS LAP':
-                    state['race_state'] = "GREEN"
-                    payload = json.dumps({"flag": "CLEAR", "message" : "SAFETY CAR ENDING"})
-                    mqtt_handler.queue_message(MqttTopics.FLAG_TOPIC, payload)
-                    rebroadcast_leader(state, mqtt_handler)
+                    return_to_green(state, mqtt_handler, "SAFETY CAR ENDING")
 
-def process_session_start_line(line: str, state: dict[str, any]) -> None:
-    """Detects the official start of a session and records the timestamp."""
-    # Don't bother parsing if we've already found the start, could be repeats in Quali
-    if state.get("true_session_start_time"):
-        return
-    
+def process_session_data_line(line:str, state: dict[str, any], mqtt_handler) -> None:
+    """Processing the Session Data Lines, like session start and red flag restarts"""
     try:
         category, payload, _ = ast.literal_eval(line)
     except (ValueError, SyntaxError):
         return
-    
-    session_type = state["session_type"]
-    start_detected = False
 
-    # Logic for FP and Quali (Pit Exit Open)
-    if session_type in ('practice', 'qualifying'):
-        if category == 'RaceControlMessages':
-            for msg in payload.get('Messages', []):
-                if isinstance(msg, dict) and msg.get('Message') == 'GREEN LIGHT - PIT EXIT OPEN':
-                    start_detected = True
+    if category == 'SessionData':
+        for series_data in payload.get('StatusSeries', {}).values():
+            if isinstance(series_data, dict) and series_data.get('SessionStatus') == 'Started':
+                if not state.get("true_session_start_time"):
+                    logging.info(f'Start detected from livefeed at {datetime.now()}')
+                    state["true_session_start_time"] = time.monotonic()
+                    state["true_session_start_time"] = time.monotonic()
+                    # Sets a 5 min cutoff timer for "bothering" to deal with MQTT incomming messags for "session start"
+                    state["calibration_window_end_time"] = time.monotonic() + 300
                     break
-    # Logic for races <- This needs calibration as I am sceptic to Gemini's implementation
-    elif session_type == 'race':
-        if category == 'SessionData':
-            for series_data in payload.get('StatusSeries', {}).values():
-                if isinstance(series_data, dict) and series_data.get('SessionStatus') == 'Started':
-                    start_detected = True
+                elif state['race_state'] == 'RED':
+                    return_to_green(state, mqtt_handler, "GREEN FLAG, RED flag cleared")
                     break
-
-    if start_detected:
-        state["true_session_start_time"] = time.monotonic()
-        # Sets a 5 min cutoff timer for "bothering" to deal with MQTT incomming messags for "session start"
-        state["calibration_window_end_time"] = time.monotonic() + 300
-
 
 def reset_for_next_session(state):
     """Resets the state for the next qualifying segment."""
@@ -168,7 +159,3 @@ def reset_for_next_session(state):
     state['fastest_lap_info'] = {"Driver": None, "Time": timedelta(minutes=3)} # Thinking that 3 minues will stop the random sudden fastest laps at the beginning of the session
     state['cooldown_active'] = False
     state['session_end_time'] = None
-
-                
-
-
