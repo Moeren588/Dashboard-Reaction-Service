@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+## [0.5.2] - 2025-09-20
+
+### ADDED
+- return_to_green function to avoid code repetition.
+- Broadcasting GREEN flag to MQTT
+- Added process_session_data_line function
+
+### CHANGED
+- How start of session is read for *all* sessions, should make Calibration more reliable
+
+### FIXED
+- Not rebroadcasting lead when there is no lead recorded
+- RED FLAG status never clearing
+
+### REMOVED
+- The dedicated "look for start of session" function, merged into a neater session data line processor
+
 ## [0.5.1] - 2025-09-19
 
 ### FIXED
