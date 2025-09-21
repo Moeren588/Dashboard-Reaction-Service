@@ -6,13 +6,6 @@ import logging
 
 from .mqtt_topics import MqttTopics
 
-
-try:
-    import pandas as pd
-except ImportError:
-    raise
-
-
 def get_team_by_driver(driver_number_string: str) -> str:
     """Returns the team name based on driver number"""
     teams = {
@@ -48,7 +41,15 @@ def parse_lap_time(time_str: str) -> timedelta | None:
     """Converts a time string to a timedelta object"""
     if not (isinstance(time_str, str) or ':' not in time_str):
         return None
-    return pd.to_timedelta(f"00:{time_str}")
+    try:
+        datetime_object = datetime.strptime(time_str, '%M:%S.%f')
+        return timedelta(
+            minutes = datetime_object.minute,
+            seconds = datetime_object.second,
+            microseconds = datetime_object.microsecond
+        )
+    except ValueError:
+        return None
 
 def process_lap_time_line(line: str, state: dict[str, any], mqtt_handler) -> None:
     category, payload, _ = ast.literal_eval(line)
@@ -63,7 +64,7 @@ def process_lap_time_line(line: str, state: dict[str, any], mqtt_handler) -> Non
                     team_name = get_team_by_driver(num)
                     state['fastest_lap_info'].update(Time=lap_time, Driver=driver_name, Team=team_name)
                     state['current_session_lead'].update(Driver=driver_name, Team=team_name)
-                    payload = json.dumps({"driver": driver_name, "team": team_name, "lap_time": lap_time_str})
+                    payload = json.dumps({"driver": driver_name, "team": team_name})
                     mqtt_handler.queue_message(MqttTopics.LEADER_TOPIC, payload)
 
 def process_race_lead_line(line: str, state: dict[str, any], mqtt_handler) -> None:

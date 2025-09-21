@@ -71,8 +71,6 @@ if __name__ == "__main__":
 
     if session_state['session_type'] == 'race':
         race_lead_process = f1_utils.process_race_lead_line
-    elif session_state['session_type'] == 'qualifying':
-        race_lead_process = f1_utils.process_lap_time_line
     else:
         race_lead_process = f1_utils.process_lap_time_line
 

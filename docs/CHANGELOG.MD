@@ -9,9 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### CHANGED
 - Set up a folder structure to organize the project: Code has now been played under `src/drs`!
+- how it sets the parsing function for incomming lines: now it is if race, else the rest (no need to specifically check for qualifying)
 
 ### FIXED
 - Not setting session leader when forcing lead
+
+### REMOVED
+- (#8) Removed the use of pandas in `f1_utils`, however the `FastF1` API still requires it, so it cannot be removed from the project.
+- Laptime when sending leader change over MQTT durin fp and quali (this was never sent during races, so it unifies the expected payload)
 
 ## [0.5.2] - 2025-09-20
 
