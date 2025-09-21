@@ -241,7 +241,6 @@ def test_vsc_ending_scenario(state, mock_mqtt):
 def test_red_flag_scenario(state, mock_mqtt):
     """Testing when red flags are raised and then cleared"""
     # Set red flag
-    state['true_session_start_time'] = time.monotonic()
     red_flag_line = "['RaceControlMessages', {'Messages': {'50': {'Utc': '2025-07-05T11:33:58', 'Category': 'Flag', 'Flag': 'RED', 'Scope': 'Track', 'Message': 'RED FLAG'}}}, '2025-07-05T11:33:58.102Z']"
     process_race_control_line(red_flag_line, state, mock_mqtt)
 
@@ -256,6 +255,7 @@ def test_red_flag_scenario(state, mock_mqtt):
 def test_red_flag_ending_scenario(state, mock_mqtt):
     """Testing that end of Red flag and back to Green conditions"""
     # Setup
+    state['true_session_start_time'] = time.monotonic()
     state['race_state'] = 'RED'
     cleared_flag_line = "['SessionData', {'StatusSeries': {'4': {'Utc': '2025-09-07T13:03:34.805Z', 'SessionStatus': 'Started'}}}, '2025-09-07T13:03:34.805Z']"
     
@@ -265,6 +265,6 @@ def test_red_flag_ending_scenario(state, mock_mqtt):
     ## States
     assert state['race_state'] == 'GREEN'
     ## MQTT
-    assert mock_mqtt.queue_message.call_count == 2
+    mock_mqtt.queue_message.assert_called_once()
     expected_payload = json.dumps({"flag": "GREEN", "message": "GREEN FLAG, RED flag cleared"})
     mock_mqtt.queue_message.assert_called_with(MqttTopics.FLAG_TOPIC, expected_payload)
