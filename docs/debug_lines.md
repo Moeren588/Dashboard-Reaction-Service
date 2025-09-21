@@ -15,8 +15,16 @@ Lines going from slowest to fastest:
 ## Race Lead Change (Race):
 Race change messages, does not matter in what order you test them.
 
+**Norris takes lead:**
+
 ['TopThree', {'Lines': {'0': {'RacingNumber': '4', 'Tla': 'NOR', 'BroadcastName': 'L NORRIS', 'FullName': 'Lando NORRIS', 'FirstName': 'Lando', 'LastName': 'Norris', 'Reference': 'LANNOR01', 'LapTime': '1:39.005', 'LapState': 64}, '1': {'RacingNumber': '81', 'Tla': 'PIA', 'BroadcastName': 'O PIASTRI', 'FullName': 'Oscar PIASTRI', 'FirstName': 'Oscar', 'LastName': 'Piastri', 'Reference': 'OSCPIA01', 'LapTime': '1:37.478', 'LapState': 80, 'DiffToAhead': '', 'DiffToLeader': ''}}}, '2025-07-06T15:27:00.924Z']
+
+**Piastri takes lead:**
+
 ['TopThree', {'Lines': {'0': {'RacingNumber': '81', 'Tla': 'PIA', 'BroadcastName': 'O PIASTRI', 'FullName': 'Oscar PIASTRI', 'FirstName': 'Oscar', 'LastName': 'Piastri', 'Reference': 'OSCPIA01', 'Team': 'McLaren', 'TeamColour': 'F47600', 'LapTime': '2:43.087'}, '1': {'RacingNumber': '1', 'Tla': 'VER', 'BroadcastName': 'M VERSTAPPEN', 'FullName': 'Max VERSTAPPEN', 'FirstName': 'Max', 'LastName': 'Verstappen', 'Reference': 'MAXVER01', 'Team': 'Red Bull Racing', 'TeamColour': '4781D7', 'LapTime': '2:42.616', 'DiffToAhead': '', 'DiffToLeader': ''}}}, '2025-07-06T14:49:19.685Z']
+
+**Verstappen takes lead:**
+
 ['TopThree', {'Lines': {'0': {'RacingNumber': '1', 'Tla': 'VER', 'BroadcastName': 'M VERSTAPPEN', 'FullName': 'Max VERSTAPPEN', 'FirstName': 'Max', 'LastName': 'Verstappen', 'Reference': 'MAXVER01', 'Team': 'Red Bull Racing', 'TeamColour': '4781D7', 'LapTime': '2:42.616'}, '1': {'RacingNumber': '81', 'Tla': 'PIA', 'BroadcastName': 'O PIASTRI', 'FullName': 'Oscar PIASTRI', 'FirstName': 'Oscar', 'LastName': 'Piastri', 'Reference': 'OSCPIA01', 'Team': 'McLaren', 'TeamColour': 'F47600', 'LapTime': '2:43.087', 'DiffToAhead': '', 'DiffToLeader': ''}}}, '2025-07-06T14:49:09.888Z']
 
 
@@ -35,6 +43,8 @@ Used for clearing sectors for yellow flags (they never show a GREEN flag)
 
 ### RED Flag
 ['RaceControlMessages', {'Messages': {'50': {'Utc': '2025-07-05T11:33:58', 'Category': 'Flag', 'Flag': 'RED', 'Scope': 'Track', 'Message': 'RED FLAG'}}}, '2025-07-05T11:33:58.102Z']
+
+### CHEQUERED Flag
 ['RaceControlMessages', {'Messages': {'14': {'Utc': '2025-07-05T14:27:49', 'Category': 'Flag', 'Flag': 'CHEQUERED', 'Scope': 'Track', 'Message': 'CHEQUERED FLAG'}}}, '2025-07-05T14:27:49.153Z']
 
 ### VIRTUAL SAFETY CAR

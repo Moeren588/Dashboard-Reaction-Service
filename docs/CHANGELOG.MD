@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+### CHANGED
+- Set up a folder structure to organize the project: Code has now been played under `src/drs`!
+
+### FIXED
+- Not setting session leader when forcing lead
+
 ## [0.5.2] - 2025-09-20
 
 ### ADDED
@@ -19,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### FIXED
 - Not rebroadcasting lead when there is no lead recorded
-- RED FLAG status never clearing
+- RED FLAG status never clearing (thanks to @Gtwizzy for finding the solution)
 
 ### REMOVED
 - The dedicated "look for start of session" function, merged into a neater session data line processor

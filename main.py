@@ -7,9 +7,9 @@ import queue
 
 import config
 import mqtt_config
-import f1_utils
-from mqtt_handler import MQTTHandler
-from mqtt_topics import MqttTopics
+import src.drs.f1_utils as f1_utils
+from src.drs.mqtt_handler import MQTTHandler
+from src.drs.mqtt_topics import MqttTopics
 
 DRS_VERSION = "0.5.2"
 
