@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+### ADDED
+- Testing suite (using pytest)
+
 ### CHANGED
 - Set up a folder structure to organize the project: Code has now been played under `src/drs`!
 - how it sets the parsing function for incomming lines: now it is if race, else the rest (no need to specifically check for qualifying)
