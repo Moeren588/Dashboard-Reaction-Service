@@ -6,7 +6,7 @@ import time
 from datetime import datetime, timedelta
 from queue import Queue
 
-from mqtt_topics import MqttTopics
+from .mqtt_topics import MqttTopics
 
 
 class MQTTHandler:

@@ -4,7 +4,8 @@ import ast
 import time
 import logging
 
-from mqtt_topics import MqttTopics
+from .mqtt_topics import MqttTopics
+
 
 try:
     import pandas as pd
