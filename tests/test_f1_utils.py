@@ -70,29 +70,6 @@ def test_process_new_fastest_lap_lead_change(state, mock_mqtt):
     expected_payload = json.dumps({"driver": "55", "team": "Williams"})
     mock_mqtt.queue_message.assert_called_with(MqttTopics.LEADER_TOPIC, expected_payload)
 
-## Race Lead Change
-def test_process_race_lead_line_new_leader(mock_mqtt):
-    """Tests that a new leader is correctly identified and an MQTT is queued"""
-    # Setup
-    new_lead_line = "['TopThree', {'Lines': {'0': {'RacingNumber': '1', 'Tla': 'VER', 'BroadcastName': 'M VERSTAPPEN', 'FullName': 'Max VERSTAPPEN', 'FirstName': 'Max', 'LastName': 'Verstappen', 'Reference': 'MAXVER01', 'Team': 'Red Bull Racing', 'TeamColour': '4781D7', 'LapTime': '2:42.616'}, '1': {'RacingNumber': '81', 'Tla': 'PIA', 'BroadcastName': 'O PIASTRI', 'FullName': 'Oscar PIASTRI', 'FirstName': 'Oscar', 'LastName': 'Piastri', 'Reference': 'OSCPIA01', 'Team': 'McLaren', 'TeamColour': 'F47600', 'LapTime': '2:43.087', 'DiffToAhead': '', 'DiffToLeader': ''}}}, '2025-07-06T14:49:09.888Z']"
-    initial_state = {
-        "current_leader_num": "16",
-        "current_session_lead": {"Driver": "LEC", "Team": "Ferrari"}
-    }
-
-    # Execute
-    process_race_lead_line(new_lead_line, initial_state, mock_mqtt)
-
-    # Asserts
-    ## First state check
-    assert initial_state["current_leader_num"] == "1", "Should be 1 for Verstappen"
-    assert initial_state["current_session_lead"]["Driver"] == "VER", "Should be VER for Verstappen"
-    assert initial_state["current_session_lead"]["Team"] == "Red Bull", "Should be Red Bull"
-
-    ## Then check MQTT
-    mock_mqtt.queue_message.assert_called_once()
-    expected_payload = json.dumps({"driver" : "VER", "team" : "Red Bull"})
-    mock_mqtt.queue_message.assert_called_with(MqttTopics.LEADER_TOPIC, expected_payload)
 
 ## Test Qualifying transitions.
 def test_qualifying_transitions(state, mock_mqtt, freezer):
@@ -268,3 +245,65 @@ def test_red_flag_ending_scenario(state, mock_mqtt):
     mock_mqtt.queue_message.assert_called_once()
     expected_payload = json.dumps({"flag": "GREEN", "message": "GREEN FLAG, RED flag cleared"})
     mock_mqtt.queue_message.assert_called_with(MqttTopics.FLAG_TOPIC, expected_payload)
+
+
+TOP_THREE_LINE_HAD = "['TopThree', {'Lines': {'0': {'RacingNumber': '6', 'Tla': 'HAD', 'BroadcastName': 'I HADJAR', 'FullName': 'Isack HADJAR', 'FirstName': 'Isack', 'LastName': 'Hadjar', 'Reference': 'ISAHAD01', 'Team': 'Racing Bulls', 'TeamColour': '6C98FF', 'LapState': 33}}}, '2025-09-20T12:00:46.302Z']"
+
+
+class TestProcessRaceLeadLine:
+    def test_process_race_lead_line_new_leader(self, mock_mqtt, state):
+        """
+        Test that a new leader updates the state and sends an MQTT message.
+        """
+        process_race_lead_line(TOP_THREE_LINE_HAD, state, mock_mqtt)
+
+        assert state['current_leader_num'] == '6'
+        assert state['current_session_lead']['Driver'] == 'HAD'
+        assert state['current_session_lead']['Team'] == 'RB'
+
+        expected_payload = json.dumps({"driver": "HAD", "team": "RB", "team_color": "6C98FF"})
+        mock_mqtt.queue_message.assert_called_once_with(MqttTopics.LEADER_TOPIC, expected_payload)
+
+
+    def test_process_race_lead_line_same_leader(self, mock_mqtt, state):
+        """
+        Test that no action is taken if the leader has not changed.
+        """
+        state['current_leader_num'] = '6'
+        state['current_session_lead'] = {'Driver': 'HAD', 'Team': 'RB'}
+
+        process_race_lead_line(TOP_THREE_LINE_HAD, state, mock_mqtt)
+
+        # State should be unchanged from the pre-configured state
+        assert state['current_leader_num'] == '6'
+        assert state['current_session_lead']['Driver'] == 'HAD'
+        assert state['current_session_lead']['Team'] == 'RB'
+        mock_mqtt.queue_message.assert_not_called()
+
+
+    def test_process_race_lead_line_irrelevant_category(self, mock_mqtt, state):
+        """
+        Test that lines with categories other than 'TopThree' are ignored.
+        """
+        line = "['TimingData', {'Lines': {'23': {'Sectors': {'0': {'Segments': {'7': {'Status': 2051}}}}}}}, '2025-09-20T12:00:44.123Z']"
+        state_before = state.copy()
+
+        process_race_lead_line(line, state_before, mock_mqtt)
+
+        assert state_before == state
+        mock_mqtt.queue_message.assert_not_called()
+
+
+    def test_process_race_lead_line_no_p1_data(self, mock_mqtt, state):
+        """
+        Test that the function handles 'TopThree' data that is missing the P1 ('0') key.
+        """
+        line = "['TopThree', {'Lines': {'1': {'RacingNumber': '6', 'Tla': 'HAD', 'BroadcastName': 'I HADJAR', 'FullName': 'Isack HADJAR', 'FirstName': 'Isack', 'LastName': 'Hadjar', 'Reference': 'ISAHAD01', 'Team': 'Racing Bulls', 'TeamColour': '6C98FF', 'LapState': 33}}}, '2025-09-20T12:00:46.302Z']"
+        state_before = state.copy()
+
+        process_race_lead_line(line, state_before, mock_mqtt)
+
+        assert state_before == state
+        mock_mqtt.queue_message.assert_not_called()
+
+

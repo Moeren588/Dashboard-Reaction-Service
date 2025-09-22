@@ -76,7 +76,7 @@ def process_race_lead_line(line: str, state: dict[str, any], mqtt_handler) -> No
             state['current_leader_num'] = new_leader_num
             team_name = get_team_by_driver(new_leader_num)
             state['current_session_lead'].update(Driver=p1_data.get('Tla', new_leader_num), Team=team_name)
-            payload = json.dumps({"driver": p1_data.get('Tla', new_leader_num), "team": team_name})
+            payload = json.dumps({"driver": p1_data.get('Tla', new_leader_num), "team": team_name, "team_color": p1_data.get('TeamColour')})
             mqtt_handler.queue_message(MqttTopics.LEADER_TOPIC, payload)
 
 def process_race_control_line(line: str, state: dict[str, any], mqtt_handler) -> None:
