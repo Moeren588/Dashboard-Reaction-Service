@@ -36,38 +36,44 @@ def mock_mqtt():
 
 # --- Tests ---
 ## New fastest lap (quali and fp)
-def test_process_new_fastest_lap_lead_change(state, mock_mqtt):
+def test_process_new_fastest_lap_lead_change(mock_mqtt):
     """Tests that a new fastest lap and leader is correctly identified and an MQTT is queued"""
     # Setup
-    state['session_type'] = 'qualifying'
+    initial_state = {
+        "session_type" : "qualifying",
+        "fastest_lap_info": {"Time": timedelta(days=1), "Driver": None, "Team": None},
+        "current_session_lead": {"Driver": None, "Team": None},
+        "teams_data": {'alpine' : {'name' : 'Alpine'}, 'williams' : {'name' : 'Williams'}},
+        "drivers_data": {'10' : {'abbreviation' : 'GAS', 'team_key' : 'alpine'}, '55' : {'abbreviation' : 'SAI', 'team_key' : 'williams'}}
+    }
     new_fastest_lap_line = "['TimingData', {'Lines': {'10': {'NumberOfLaps': 3, 'Sectors': {'2': {'Value': '24.386'}}, 'Speeds': {'FL': {'Value': '250'}}, 'BestLapTime': {'Value': '1:28.552', 'Lap': 2}, 'LastLapTime': {'Value': '1:28.552', 'OverallFastest': True, 'PersonalFastest': True}}}}, '2025-07-05T10:38:19.212Z']"
-    
+
     # Execute
-    process_lap_time_line(new_fastest_lap_line, state, mock_mqtt)
+    process_lap_time_line(new_fastest_lap_line, initial_state, mock_mqtt)
 
     # Asserts
     ## States
-    assert state['fastest_lap_info']['Time'] == timedelta(minutes=1, seconds=28, microseconds=552000)
-    assert state['fastest_lap_info']['Driver'] == '10'
-    assert state['fastest_lap_info']['Team'] == 'Alpine'
+    assert initial_state['fastest_lap_info']['Time'] == timedelta(minutes=1, seconds=28, microseconds=552000)
+    assert initial_state['fastest_lap_info']['Driver'] == 'GAS'
+    assert initial_state['fastest_lap_info']['Team'] == 'Alpine'
     ## MQTT
     mock_mqtt.queue_message.assert_called_once()
-    expected_payload = json.dumps({"driver": "10", "team": "Alpine"})
+    expected_payload = json.dumps({"driver": "GAS", "team": "Alpine"})
     mock_mqtt.queue_message.assert_called_with(MqttTopics.LEADER_TOPIC, expected_payload)
 
     # New Fastest Lap
     new_fastest_lap_line = "['TimingData', {'Lines': {'55': {'NumberOfLaps': 3, 'Sectors': {'2': {'Value': '24.386'}}, 'Speeds': {'FL': {'Value': '250'}}, 'BestLapTime': {'Value': '1:28.552', 'Lap': 2}, 'LastLapTime': {'Value': '1:26.552', 'OverallFastest': True, 'PersonalFastest': True}}}}, '2025-07-05T10:38:19.212Z']"
 
-    process_lap_time_line(new_fastest_lap_line, state, mock_mqtt)
+    process_lap_time_line(new_fastest_lap_line, initial_state, mock_mqtt)
     # Asserts
     ## States
-    assert state['fastest_lap_info']['Time'] == timedelta(minutes=1, seconds=26, microseconds=552000)
-    assert state['fastest_lap_info']['Driver'] == '55'
-    assert state['fastest_lap_info']['Team'] == 'Williams'
+    assert initial_state['fastest_lap_info']['Time'] == timedelta(minutes=1, seconds=26, microseconds=552000)
+    assert initial_state['fastest_lap_info']['Driver'] == 'SAI'
+    assert initial_state['fastest_lap_info']['Team'] == 'Williams'
 
     ## MQTT
     assert mock_mqtt.queue_message.call_count == 2
-    expected_payload = json.dumps({"driver": "55", "team": "Williams"})
+    expected_payload = json.dumps({"driver": "SAI", "team": "Williams"})
     mock_mqtt.queue_message.assert_called_with(MqttTopics.LEADER_TOPIC, expected_payload)
 
 ## Race Lead Change
@@ -77,7 +83,9 @@ def test_process_race_lead_line_new_leader(mock_mqtt):
     new_lead_line = "['TopThree', {'Lines': {'0': {'RacingNumber': '1', 'Tla': 'VER', 'BroadcastName': 'M VERSTAPPEN', 'FullName': 'Max VERSTAPPEN', 'FirstName': 'Max', 'LastName': 'Verstappen', 'Reference': 'MAXVER01', 'Team': 'Red Bull Racing', 'TeamColour': '4781D7', 'LapTime': '2:42.616'}, '1': {'RacingNumber': '81', 'Tla': 'PIA', 'BroadcastName': 'O PIASTRI', 'FullName': 'Oscar PIASTRI', 'FirstName': 'Oscar', 'LastName': 'Piastri', 'Reference': 'OSCPIA01', 'Team': 'McLaren', 'TeamColour': 'F47600', 'LapTime': '2:43.087', 'DiffToAhead': '', 'DiffToLeader': ''}}}, '2025-07-06T14:49:09.888Z']"
     initial_state = {
         "current_leader_num": "16",
-        "current_session_lead": {"Driver": "LEC", "Team": "Ferrari"}
+        "current_session_lead": {"Driver": "LEC", "Team": "Ferrari"},
+        "teams_data": {'red_bull' : {'name' : 'Red Bull'}},
+        "drivers_data": {'1' : {'abbreviation' : 'VER', 'team_key' : 'red_bull'}}
     }
 
     # Execute

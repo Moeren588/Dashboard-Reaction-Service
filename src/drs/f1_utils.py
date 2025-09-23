@@ -6,23 +6,6 @@ import logging
 
 from .mqtt_topics import MqttTopics
 
-def get_team_by_driver(driver_number_string: str) -> str:
-    """Returns the team name based on driver number"""
-    teams = {
-        '1': "Red Bull", '22': "Red Bull",
-        '16': "Ferrari", '44': "Ferrari",
-        '12': "Mercedes", '63': "Mercedes",
-        '4': "McLaren", '81': "McLaren",
-        '14': "Aston Martin", '18': "Aston Martin",
-        '10': "Alpine", '43': "Alpine",
-        '6': "RB", '30': "RB",
-        '31': "Haas", '87': "Haas",
-        '5': "Sauber", '27': "Sauber",
-        '55': "Williams", '23': "Williams"
-    }
-    
-    return teams.get(driver_number_string, "Unknown")
-
 def rebroadcast_leader(state: dict[str, any], mqtt_handler):
     """Resends the lead, usefull after flag or Safety Car events"""
     if not state['current_session_lead']['Team']: return #Early return if no leader has been set
@@ -56,15 +39,22 @@ def process_lap_time_line(line: str, state: dict[str, any], mqtt_handler) -> Non
 
     if category == 'TimingData' and 'Lines' in payload:
         for num, data in payload['Lines'].items():
-            if 'Abbreviation' in data: state['driver_abbreviations'][num] = data['Abbreviation']
+            # if 'Abbreviation' in data: state['driver_abbreviations'][num] = data['Abbreviation']
             if 'LastLapTime' in data and isinstance(data['LastLapTime'], dict):
                 lap_time_str = data['LastLapTime'].get('Value')
                 if lap_time_str and (lap_time := parse_lap_time(lap_time_str)) and lap_time < state['fastest_lap_info']['Time']:
-                    driver_name = state['driver_abbreviations'].get(num, num)
-                    team_name = get_team_by_driver(num)
-                    state['fastest_lap_info'].update(Time=lap_time, Driver=driver_name, Team=team_name)
-                    state['current_session_lead'].update(Driver=driver_name, Team=team_name)
-                    payload = json.dumps({"driver": driver_name, "team": team_name})
+                    try:
+                        driver_info = state['drivers_data'][num]
+                        driver_abbreviation = driver_info['abbreviation']
+                        team_key = driver_info['team_key']
+                        team_name = state['teams_data'][team_key]['name']
+                    except KeyError:
+                        logging.warning(f"Could not find driver or team for {num}, setting unknown")
+                        driver_abbreviation = "UNK"
+                        team_name = "UNKNOWN"
+                    state['fastest_lap_info'].update(Time=lap_time, Driver=driver_abbreviation, Team=team_name)
+                    state['current_session_lead'].update(Driver=driver_abbreviation, Team=team_name)
+                    payload = json.dumps({"driver": driver_abbreviation, "team": team_name})
                     mqtt_handler.queue_message(MqttTopics.LEADER_TOPIC, payload)
 
 def process_race_lead_line(line: str, state: dict[str, any], mqtt_handler) -> None:
@@ -74,9 +64,16 @@ def process_race_lead_line(line: str, state: dict[str, any], mqtt_handler) -> No
         new_leader_num = p1_data.get('RacingNumber')
         if new_leader_num and new_leader_num != state.get('current_leader_num'):
             state['current_leader_num'] = new_leader_num
-            team_name = get_team_by_driver(new_leader_num)
-            state['current_session_lead'].update(Driver=p1_data.get('Tla', new_leader_num), Team=team_name)
-            payload = json.dumps({"driver": p1_data.get('Tla', new_leader_num), "team": team_name})
+            try:
+                driver_info = state['drivers_data'][new_leader_num]
+                driver_abbreviation = driver_info['abbreviation']
+                team_key = driver_info['team_key']
+
+                team_name = state['teams_data'][team_key]['name']
+            except KeyError:
+                logging.warning(f"Could not find driver or team for {new_leader_num}")
+            state['current_session_lead'].update(Driver=driver_abbreviation, Team=team_name)
+            payload = json.dumps({"driver": driver_abbreviation, "team": team_name})
             mqtt_handler.queue_message(MqttTopics.LEADER_TOPIC, payload)
 
 def process_race_control_line(line: str, state: dict[str, any], mqtt_handler) -> None:

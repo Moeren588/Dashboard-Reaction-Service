@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ADDED
 - Testing suite (using pytest)
+- (#12) team and drivers data as a seperate json: "data/drs_data.json"
+- load_drs_data() in `main.py` to fetch the teams and drivers data, temporarily stored in session_data (until this is moved to its own Class)
 
 ### CHANGED
 - Set up a folder structure to organize the project: Code has now been played under `src/drs`!
@@ -20,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### REMOVED
 - (#8) Removed the use of pandas in `f1_utils`, however the `FastF1` API still requires it, so it cannot be removed from the project.
 - Laptime when sending leader change over MQTT durin fp and quali (this was never sent during races, so it unifies the expected payload)
+
+### DEPRECATED
+- (#12) `f1_utils.get_team_by_driver()`
 
 ## [0.5.2] - 2025-09-20
 

@@ -4,6 +4,7 @@ import argparse
 from datetime import timedelta, datetime
 import json
 import queue
+from pathlib import Path
 
 import config
 import mqtt_config
@@ -50,9 +51,28 @@ if not normalized_session:
     logging.error(f"Valid options are: {', '.join(SESSION_MAP.keys())}")
     exit(1)
 
+def load_drs_data(filename : str = "drs_data.json") -> dict:
+    """Loads the static F1 driver and team data from the JSON file"""
+    data_path = Path(__file__).parent / "data" / filename
+    try:
+        with open(data_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        logging.error(f"Data file not found at {data_path}")
+        return {}
+    except json.JSONDecodeError as e:
+        logging.error(f"Could not decode JSON from {data_path}. Check for syntax errors: {e}")
+        return {}
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+    drs_data = load_drs_data()
+    if not drs_data:
+        logging.error("Could not load DRS data. Exiting.")
+        exit(1)
+
+    # This will be moved into its own Class
     session_state = {
         "session_type" : normalized_session,
         "fastest_lap_info": {"Time": timedelta(days=1), "Driver": None, "Team": None},
@@ -67,6 +87,9 @@ if __name__ == "__main__":
         # For calibration
         "true_session_start_time": None,
         "calibration_window_end_time": None,
+        # Storing Teams and Drivers
+        "teams_data": drs_data.get("teams", {}),
+        "drivers_data": drs_data.get("drivers", {}),
     }
 
     if session_state['session_type'] == 'race':
