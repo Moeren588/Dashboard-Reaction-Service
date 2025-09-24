@@ -76,6 +76,23 @@ def test_process_new_fastest_lap_lead_change(mock_mqtt):
     expected_payload = json.dumps({"driver": "SAI", "team": "Williams"})
     mock_mqtt.queue_message.assert_called_with(MqttTopics.LEADER_TOPIC, expected_payload)
 
+def test_slower_lap_registered_no_lead_change(mock_mqtt):
+    """Tests that a slower lap do not trigger any changes in lead time"""
+    initial_state = {
+        "session_type" : "qualifying",
+        "fastest_lap_info": {"Time": timedelta(minutes=1, seconds=20), "Driver": "VER", "Team": "Red Bull"},
+        "current_session_lead": {"Driver": None, "Team": None},
+    }
+    new_fastest_lap_line = "['TimingData', {'Lines': {'10': {'NumberOfLaps': 3, 'Sectors': {'2': {'Value': '24.386'}}, 'Speeds': {'FL': {'Value': '250'}}, 'BestLapTime': {'Value': '1:28.552', 'Lap': 2}, 'LastLapTime': {'Value': '1:28.552', 'OverallFastest': True, 'PersonalFastest': True}}}}, '2025-07-05T10:38:19.212Z']"
+
+    # Execute
+    process_lap_time_line(new_fastest_lap_line, initial_state, mock_mqtt)
+    
+    assert initial_state['fastest_lap_info']['Time'] == timedelta(minutes=1, seconds=20)
+    assert initial_state['fastest_lap_info']['Driver'] == "VER"
+    assert initial_state['fastest_lap_info']['Team'] == "Red Bull"
+    mock_mqtt.queue_message.assert_not_called()
+
 ## Race Lead Change
 def test_process_race_lead_line_new_leader(mock_mqtt):
     """Tests that a new leader is correctly identified and an MQTT is queued"""
