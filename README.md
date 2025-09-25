@@ -369,7 +369,6 @@ You might want to test that your setup works, and since the main functionality o
 - Handles events like Safety Cars and flags.
   - Resets itself when yellow flags are cleared from track
   - Resets itself when Safety car (or VSC) is deployed and ending
-  - Does NOT reset on red flags <- need more data for this one
 - Adjustable publishing delay now works (though very untested)
 - Most likely unstable and will fail when you need it the most, but I am working on making it better for every race 💖
 
@@ -378,10 +377,11 @@ You might want to test that your setup works, and since the main functionality o
 - More testing, using it in as many sessions as I can:
   - Specifically flags are uncertain, and delay adjustments.
 - Make it more stable
-  - Implement tests to the code as well
-- Replace the pandas library used (absolutely not needed after all)
-- Move the drivers dict out of the f1_utils script
 - General code improvements
+
+# Thank You!
+A very special thanks to all of you who has downloaded this repo and tested it! I did not expect this amount of response, so this is awesome!
+A special thanks to @Winehorn and @Gtwizzy for their insights and direct help and contribution
 
 # Disclaimer
 This is a personal, non-commercial project created for fun and educational purposes. It is not affiliated with, authorized by, endorsed by, or in any way officially connected with Formula 1, the FIA, or any of their affiliates.
