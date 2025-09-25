@@ -4,6 +4,9 @@ The Dashboard Reaction Service (or DRS for short) is a small project gathering r
 Home Assistant automations using MQTT. The project bases itself on the [FastF1](https://github.com/theOehrly/Fast-F1) 
 Livetiming API to fetch the data real time.
 
+![HA-Automation_3](https://github.com/user-attachments/assets/1aa65c1d-8c3a-40bb-9d64-06335587a05e)
+
+
 ## Features
 * Sync smart lights with the F1 broadcast leader, matching their team colors.
 * Automate dynamic lighting scenes for Safety Car, VSC, and Red Flag events.
@@ -34,7 +37,9 @@ MQTT_PASSWORD = "your_strong_password" # MQTT password that's also present in yo
 ```
 2. `config.py`: Contains key variables for the service. You can edit the existing file to set your preferred initial broadcast delay and cache filename.
 
-> [!NOTE] A Note on the `PUBLISH_DELAY`
+> [!NOTE]
+> **A Note on the `PUBLISH_DELAY`**
+> 
 > You might wonder why there's a delay between the script receiving a message and publishing it to MQTT. This is the most important setting for syncing the service with what you see on screen.
 >
 > The official F1 timing data, which this tool uses via the FastF1 API, often arrives many seconds (some report up to a minute!) **before** you see the corresponding action on your F1TV or television broadcast. This is due to natural broadcast and streaming delays.
@@ -319,6 +324,10 @@ mode: single
 > It is important that the payload starts with 'ADJUST:' followed by the
 > value!
 
+**Screenshot of my delay adjustment buttons**
+<img width="1079" height="1010" alt="Screenshot of my Home Assistant delay and calibartion buttons" src="https://github.com/user-attachments/assets/7e0308a2-30a0-4115-bf62-077320eef0c3" />
+
+
 # MQTT Topic Reference
 The service communicates using the following MQTT topics.
 
@@ -360,7 +369,6 @@ You might want to test that your setup works, and since the main functionality o
 - Handles events like Safety Cars and flags.
   - Resets itself when yellow flags are cleared from track
   - Resets itself when Safety car (or VSC) is deployed and ending
-  - Does NOT reset on red flags <- need more data for this one
 - Adjustable publishing delay now works (though very untested)
 - Most likely unstable and will fail when you need it the most, but I am working on making it better for every race 💖
 
@@ -369,9 +377,11 @@ You might want to test that your setup works, and since the main functionality o
 - More testing, using it in as many sessions as I can:
   - Specifically flags are uncertain, and delay adjustments.
 - Make it more stable
-- Replace the pandas library used (absolutely not needed after all)
-- Move the drivers dict out of the f1_utils script
 - General code improvements
+
+# Thank You!
+A very special thanks to all of you who has downloaded this repo and tested it! I did not expect this amount of response, so this is awesome!
+A special thanks to @Winehorn and @Gtwizzy for their insights and direct help and contribution
 
 # Disclaimer
 This is a personal, non-commercial project created for fun and educational purposes. It is not affiliated with, authorized by, endorsed by, or in any way officially connected with Formula 1, the FIA, or any of their affiliates.
