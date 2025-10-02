@@ -343,7 +343,7 @@ These topics are broadcast by the service for Home Assistant to consume.
   * **Payload:** e.g,`{"flag": "YELLOW", "message": "DOUBLE YELLOW IN TRACK SECTOR 8"}`
   * **Description:** A retained message that provides the current overall track status. (e.g,`GREEN`, `YELLOW`, `SAFETY CAR`, `RED`)
 * **Topic:** `f1/race/leader`
-  * **Payload:** e.g,`{"driver": "LEC", "team": "Ferrari"}`
+  * **Payload:** e.g,`{"driver": "LEC", "driver_number": "16", "team": "Ferrari"}`
   * **Description:** An event message published when a new leader is set. The leader is determined by race lead in races, or fastest lap in pracitce and qualifying. Note that fastest lap is reset between Qualifying sessions (i.e. Q1, Q2 and Q3).
 
 ## Topics Listened to by DRS
@@ -361,27 +361,44 @@ You might want to test that your setup works, and since the main functionality o
 * Save the cache file and see if DRS is logging a response, and then if your HA is doing what you expect.
   * A good tip here is to temporarily set publishing delay very short in `config.py`
 
+## E2E Testing
+Version `0.6.0` introduced a session simulator tool (found here `tools/simulation_run.py`) which is an End-to-End testing tool. The idea is that it attempts to simulate the livetmining client by writing to the cache file. This allows you to fully test the DRS tool, broadcasting to MQTT and seeing it happen in your smart home (hopefully). To use it:
+
+* Set your `PUBLISH_DELAY` short so you don't have to wait a long time to start seeing the events (could also set it to 0 in this instance)
+* Start `main.py` in race, qualifying or fp mode
+* In another console, start `simulation_run.py`. Set the same mode here when prompted.
+  * The simulation tool should now take you through a set of preset action to test "all functionalities" .
+
+>[!NOTE]
+> there are also some settings in the `simulation_run.py` tool such as `DELAY_SECONDS` which will set the speed of when it writes to the cache file.
+
+>[!INFO]
+> The order of the simulation is: Session start, Red Bull taking lead, Yellow flag out, yellow flag cleared, safety car out, safety car in, red flag out, track clear.
+
 # Current Status
 
 - Functions and is roughly stable in all F1 session types.
   - Very well tested for practice, not so well tested for races
 - Works by itself in Qualifying (resetting between qualifying sessions)
 - Handles events like Safety Cars and flags.
-  - Resets itself when yellow flags are cleared from track
+  - Resets itself when yellow or red flags are cleared from track
   - Resets itself when Safety car (or VSC) is deployed and ending
 - Adjustable publishing delay now works (though very untested)
+- Testing suites:
+  - Unit tests for devs
+  - End to End testing with a session simulator
 - Most likely unstable and will fail when you need it the most, but I am working on making it better for every race 💖
 
 ## Plans going forward
 
-- More testing, using it in as many sessions as I can:
-  - Specifically flags are uncertain, and delay adjustments.
+- More testing, using it in as many sessions as I can! Testing is best way to improve this tool
 - Make it more stable
-- General code improvements
+- General code improvements (and make the code more testable)
+- Make a "State Cache" so you can restart if there's a crash without having to start a "clean slate"
 
 # Thank You!
 A very special thanks to all of you who has downloaded this repo and tested it! I did not expect this amount of response, so this is awesome!
-A special thanks to @Winehorn and @Gtwizzy for their insights and direct help and contribution
+A special thanks to [@Winehorn](https://github.com/Winehorn) and [@Gtwizzy](https://github.com/Gtwizzy) for their insights and direct help and contribution
 
 # Disclaimer
 This is a personal, non-commercial project created for fun and educational purposes. It is not affiliated with, authorized by, endorsed by, or in any way officially connected with Formula 1, the FIA, or any of their affiliates.

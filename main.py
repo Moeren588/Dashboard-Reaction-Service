@@ -13,7 +13,7 @@ import src.drs.f1_utils as f1_utils
 from src.drs.mqtt_handler import MQTTHandler
 from src.drs.mqtt_topics import MqttTopics
 
-DRS_VERSION = "0.5.2"
+DRS_VERSION = "0.6.0"
 
 SESSION_MAP = {
     'p' : 'practice',
@@ -73,29 +73,9 @@ if __name__ == "__main__":
         logging.error("Could not load DRS data. Exiting.")
         exit(1)
 
-    # This will be moved into its own Class
-    # session_state = {
-    #     "session_type" : normalized_session,
-    #     "fastest_lap_info": {"Time": timedelta(days=1), "Driver": None, "Team": None},
-    #     "driver_abbreviations": {},
-    #     "current_session_lead": {"Driver": None, "Team": None},
-    #     "current_leader_num": None,
-    #     "cooldown_active": False,
-    #     "session_end_time": None,
-    #     "quali_session" : "Q1",
-    #     "yellow_flags": set(), # Storing the Sectors of the Yellow flags
-    #     "race_state": "GREEN", # Storing in what the race status is: Green is good
-    #     # For calibration
-    #     "true_session_start_time": None,
-    #     "calibration_window_end_time": None,
-    #     # Storing Teams and Drivers
-    #     "teams_data": drs_data.get("teams", {}),
-    #     "drivers_data": drs_data.get("drivers", {}),
-    # }
-
     session_state = SessionState(session_type=normalized_session, teams_data=drs_data.get("teams", {}), drivers_data=drs_data.get("drivers", {}))
 
-    if session_state['session_type'] == 'race':
+    if session_state.session_type == 'race':
         race_lead_process = f1_utils.process_race_lead_line
     else:
         race_lead_process = f1_utils.process_lap_time_line

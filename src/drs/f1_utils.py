@@ -11,7 +11,7 @@ from .session_state import SessionState
 def rebroadcast_leader(state: SessionState, mqtt_handler: MQTTHandler) -> None:
     """Resends the lead, usefull after flag or Safety Car events"""
     if not state.current_session_lead.team: return #Early return if no leader has been set
-    payload = json.dumps({"driver": state.current_session_lead.driver, "team": state.current_session_lead.team})
+    payload = json.dumps({"driver": state.current_session_lead.driver, "driver_number": state.current_session_lead.driver_number, "team": state.current_session_lead.team})
     mqtt_handler.queue_message(MqttTopics.LEADER_TOPIC, payload)
 
 def return_to_green(state: SessionState, mqtt_handler: MQTTHandler, payload_message: str) -> None:

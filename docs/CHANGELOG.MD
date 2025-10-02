@@ -7,15 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+## [0.6.0] - 2025-10-02 (SINGAPORE release)
+
 ### ADDED
 - Testing suite (using pytest)
 - (#12) team and drivers data as a seperate json: "data/drs_data.json"
 - (#11) load_drs_data() in `main.py` to fetch the teams and drivers data, temporarily stored in session_data (until this is moved to its own Class)
+- Session simulation tool (tools/simulation_run.py) as an end-to-end test
+- "driver_num" to MQTT LEADER_TOPIC broadcast
 
 ### CHANGED
 - Set up a folder structure to organize the project: Code has now been played under `src/drs`!
 - how it sets the parsing function for incomming lines: now it is if race, else the rest (no need to specifically check for qualifying)
 - Moved session_state into its own Class.
+- `requirements.txt` is now as minimal as possible (use `requirements_dev.txt` for development)
 
 ### FIXED
 - Not setting session leader when forcing lead
