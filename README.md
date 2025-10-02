@@ -400,6 +400,10 @@ Version `0.6.0` introduced a session simulator tool (found here `tools/simulatio
 A very special thanks to all of you who has downloaded this repo and tested it! I did not expect this amount of response, so this is awesome!
 A special thanks to [@Winehorn](https://github.com/Winehorn) and [@Gtwizzy](https://github.com/Gtwizzy) for their insights and direct help and contribution
 
+# Thank You!
+A very special thanks to all of you who has downloaded this repo and tested it! I did not expect this amount of response, so this is awesome!
+A special thanks to @Winehorn and @Gtwizzy for their insights and direct help and contribution
+
 # Disclaimer
 This is a personal, non-commercial project created for fun and educational purposes. It is not affiliated with, authorized by, endorsed by, or in any way officially connected with Formula 1, the FIA, or any of their affiliates.
 
