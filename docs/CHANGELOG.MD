@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+## [0.6.0] - 2025-10-02 (SINGAPORE release)
+
+### ADDED
+- Testing suite (using pytest)
+- (#12) team and drivers data as a seperate json: "data/drs_data.json"
+- (#11) load_drs_data() in `main.py` to fetch the teams and drivers data, temporarily stored in session_data (until this is moved to its own Class)
+- Session simulation tool (tools/simulation_run.py) as an end-to-end test
+- "driver_num" to MQTT LEADER_TOPIC broadcast
+
+### CHANGED
+- Set up a folder structure to organize the project: Code has now been played under `src/drs`!
+- how it sets the parsing function for incomming lines: now it is if race, else the rest (no need to specifically check for qualifying)
+- Moved session_state into its own Class.
+- `requirements.txt` is now as minimal as possible (use `requirements_dev.txt` for development)
+
+### FIXED
+- Not setting session leader when forcing lead
+
+### REMOVED
+- (#8) Removed the use of pandas in `f1_utils`, however the `FastF1` API still requires it, so it cannot be removed from the project.
+- Laptime when sending leader change over MQTT durin fp and quali (this was never sent during races, so it unifies the expected payload)
+
+### DEPRECATED
+- (#12) `f1_utils.get_team_by_driver()`
+- (#11) session_state as a Dict object
+
 ## [0.5.2] - 2025-09-20
 
 ### ADDED
@@ -19,7 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### FIXED
 - Not rebroadcasting lead when there is no lead recorded
-- RED FLAG status never clearing
+- RED FLAG status never clearing (thanks to @Gtwizzy for finding the solution)
 
 ### REMOVED
 - The dedicated "look for start of session" function, merged into a neater session data line processor
