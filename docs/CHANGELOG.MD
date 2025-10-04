@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+## [0.6.1] - 2025-10-04
+
+### FIXED
+- Error when reseting to new Qualifying Session.
+
 ## [0.6.0] - 2025-10-02 (SINGAPORE release)
 
 ### ADDED

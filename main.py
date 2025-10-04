@@ -13,7 +13,7 @@ import src.drs.f1_utils as f1_utils
 from src.drs.mqtt_handler import MQTTHandler
 from src.drs.mqtt_topics import MqttTopics
 
-DRS_VERSION = "0.6.0"
+DRS_VERSION = "0.6.1"
 
 SESSION_MAP = {
     'p' : 'practice',
@@ -137,7 +137,7 @@ if __name__ == "__main__":
                     session_state.quali_session != 'Q3'):
                     if (time.monotonic() - session_state.session_end_time) > 180:
                         logging.info("Resetting for next Qualifying session")
-                        SessionState.reset_for_next_quali_segment()
+                        session_state.reset_for_next_quali_segment()
     
 
     except KeyboardInterrupt:
