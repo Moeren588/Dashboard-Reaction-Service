@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+## [0.6.2] - 2025-10-11
+
+### FIXED
+- Error when using --force-lead
+
 ## [0.6.1] - 2025-10-04
 
 ### FIXED
