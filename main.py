@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
     if args.force_lead:
         logging.info(f"Setting initial leading team as {args.force_lead}")
-        session_state.update_session_lead(driver='FORCE', driver_number='0', team=args.force_lead)
+        session_state.set_session_lead(driver='FORCE', driver_number='0', team=args.force_lead)
         forced_lead_payload = json.dumps({"driver": "FORCE", "drivcer_number": "0","team": args.force_lead})
         mqtt.queue_message(MqttTopics.LEADER_TOPIC, forced_lead_payload, immediate=True)
 
