@@ -49,13 +49,15 @@ def process_lap_time_line(line: str, state: SessionState, mqtt_handler: MQTTHand
                         driver_abbreviation = driver_info['abbreviation']
                         team_key = driver_info['team_key']
                         team_name = state.teams_data[team_key]['name']
+                        team_color = state.teams_data[team_key]['color_hex']
                     except KeyError:
                         logging.warning(f"Could not find driver or team for {num}, setting unknown")
                         driver_abbreviation = "UNK"
                         team_name = "UNKNOWN"
+                        team_color = None
                     state.set_fastest_lap(lap_time, driver_abbreviation, team_name)
                     state.set_session_lead(driver=driver_abbreviation, driver_number=num, team=team_name)
-                    payload = json.dumps({"driver": driver_abbreviation, "driver_number": num, "team": team_name})
+                    payload = json.dumps({"driver": driver_abbreviation, "driver_number": num, "team": team_name, "team_color": team_color})
                     mqtt_handler.queue_message(MqttTopics.LEADER_TOPIC, payload)
 
 def process_race_lead_line(line: str, state: SessionState, mqtt_handler: MQTTHandler) -> None:
@@ -71,12 +73,15 @@ def process_race_lead_line(line: str, state: SessionState, mqtt_handler: MQTTHan
                 team_key = driver_info['team_key']
 
                 team_name = state.teams_data[team_key]['name']
+                team_color = state.teams_data[team_key]['color_hex']
             except KeyError:
                 logging.warning(f"Could not find driver or team for {new_leader_num}")
                 driver_abbreviation = "UNK"
                 team_name = "UNKNOWN"
+                team_color = None
             state.set_session_lead(driver=driver_abbreviation, driver_number=new_leader_num, team=team_name)
-            payload = json.dumps({"driver": driver_abbreviation, "driver_number": new_leader_num, "team": team_name})
+            payload = json.dumps({"driver": driver_abbreviation, "driver_number": new_leader_num, "team": team_name, "team_color": team_color})
+
             mqtt_handler.queue_message(MqttTopics.LEADER_TOPIC, payload)
 
 def process_race_control_line(line: str, state: SessionState, mqtt_handler: MQTTHandler) -> None:

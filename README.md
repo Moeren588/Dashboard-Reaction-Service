@@ -372,7 +372,7 @@ Version `0.6.0` introduced a session simulator tool (found here `tools/simulatio
 >[!NOTE]
 > there are also some settings in the `simulation_run.py` tool such as `DELAY_SECONDS` which will set the speed of when it writes to the cache file.
 
->[!INFO]
+>[!NOTE]
 > The order of the simulation is: Session start, Red Bull taking lead, Yellow flag out, yellow flag cleared, safety car out, safety car in, red flag out, track clear.
 
 # Current Status
@@ -399,10 +399,6 @@ Version `0.6.0` introduced a session simulator tool (found here `tools/simulatio
 # Thank You!
 A very special thanks to all of you who has downloaded this repo and tested it! I did not expect this amount of response, so this is awesome!
 A special thanks to [@Winehorn](https://github.com/Winehorn) and [@Gtwizzy](https://github.com/Gtwizzy) for their insights and direct help and contribution
-
-# Thank You!
-A very special thanks to all of you who has downloaded this repo and tested it! I did not expect this amount of response, so this is awesome!
-A special thanks to @Winehorn and @Gtwizzy for their insights and direct help and contribution
 
 # Disclaimer
 This is a personal, non-commercial project created for fun and educational purposes. It is not affiliated with, authorized by, endorsed by, or in any way officially connected with Formula 1, the FIA, or any of their affiliates.
