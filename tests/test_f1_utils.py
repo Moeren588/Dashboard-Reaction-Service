@@ -38,111 +38,111 @@ def mock_mqtt():
     return Mock()
 
 # --- Tests ---
-## New fastest lap (quali and fp)
-def test_process_new_fastest_lap_lead_change_initial(state:SessionState, mock_mqtt: Mock):
-    """Tests that a new fastest lap and leader is correctly identified with initial state value (1 day fastest lap)"""
-    # Setup
-    state.session_type = 'qualifying'
-    new_fastest_lap_line = "['TimingData', {'Lines': {'10': {'NumberOfLaps': 3, 'Sectors': {'2': {'Value': '24.386'}}, 'Speeds': {'FL': {'Value': '250'}}, 'BestLapTime': {'Value': '1:28.552', 'Lap': 2}, 'LastLapTime': {'Value': '1:28.552', 'OverallFastest': True, 'PersonalFastest': True}}}}, '2025-07-05T10:38:19.212Z']"
 
-    # Execute
-    process_lap_time_line(new_fastest_lap_line, state, mock_mqtt)
+class TestProcessLapTimeLine:
+    ## New fastest lap (quali and fp)
+    def test_process_new_fastest_lap_lead_change_initial(self, state:SessionState, mock_mqtt: Mock):
+        """Tests that a new fastest lap and leader is correctly identified with initial state value (1 day fastest lap)"""
+        # Setup
+        state.session_type = 'qualifying'
+        new_fastest_lap_line = "['TimingData', {'Lines': {'10': {'NumberOfLaps': 3, 'Sectors': {'2': {'Value': '24.386'}}, 'Speeds': {'FL': {'Value': '250'}}, 'BestLapTime': {'Value': '1:28.552', 'Lap': 2}, 'LastLapTime': {'Value': '1:28.552', 'OverallFastest': True, 'PersonalFastest': True}}}}, '2025-07-05T10:38:19.212Z']"
 
-    # Asserts
-    ## States
-    assert state.fastest_lap_info.time == timedelta(minutes=1, seconds=28, microseconds=552000)
-    assert state.fastest_lap_info.driver == 'GAS'
-    assert state.fastest_lap_info.team == 'Alpine'
-    ## MQTT
-    mock_mqtt.queue_message.assert_called_once()
-    expected_payload = json.dumps({"driver": "GAS", "driver_number": "10", "team": "Alpine"})
-    mock_mqtt.queue_message.assert_called_with(MqttTopics.LEADER_TOPIC, expected_payload)
+        # Execute
+        process_lap_time_line(new_fastest_lap_line, state, mock_mqtt)
 
-def test_process_new_fastest_lap_lead_change(state:SessionState, mock_mqtt: Mock):
-    """Tests that a new fastest lap and leader is correctly identified when a fast lap has been already set (smaller margines)"""
-    # New Fastest Lap
-    state.session_type = 'pracitce'
-    state.set_fastest_lap(lap_time=timedelta(minutes=1, seconds=30), driver='GAS', team='Alpine')
-    
-    new_fastest_lap_line = "['TimingData', {'Lines': {'55': {'NumberOfLaps': 3, 'Sectors': {'2': {'Value': '24.386'}}, 'Speeds': {'FL': {'Value': '250'}}, 'BestLapTime': {'Value': '1:28.552', 'Lap': 2}, 'LastLapTime': {'Value': '1:26.552', 'OverallFastest': True, 'PersonalFastest': True}}}}, '2025-07-05T10:38:19.212Z']"
+        # Asserts
+        ## States
+        assert state.fastest_lap_info.time == timedelta(minutes=1, seconds=28, microseconds=552000)
+        assert state.fastest_lap_info.driver == 'GAS'
+        assert state.fastest_lap_info.team == 'Alpine'
+        ## MQTT
+        mock_mqtt.queue_message.assert_called_once()
+        expected_payload = json.dumps({"driver": "GAS", "driver_number": "10", "team": "Alpine", "team_color": "00A1E8"})
+        mock_mqtt.queue_message.assert_called_with(MqttTopics.LEADER_TOPIC, expected_payload)
 
-    process_lap_time_line(new_fastest_lap_line, state, mock_mqtt)
-    # Asserts
-    ## States
-    assert state.fastest_lap_info.time == timedelta(minutes=1, seconds=26, microseconds=552000)
-    assert state.fastest_lap_info.driver == 'SAI'
-    assert state.fastest_lap_info.team == 'Williams'
+    def test_process_new_fastest_lap_lead_change(self, state:SessionState, mock_mqtt: Mock):
+        """Tests that a new fastest lap and leader is correctly identified when a fast lap has been already set (smaller margines)"""
+        # New Fastest Lap
+        state.session_type = 'pracitce'
+        state.set_fastest_lap(lap_time=timedelta(minutes=1, seconds=30), driver='GAS', team='Alpine')
+        
+        new_fastest_lap_line = "['TimingData', {'Lines': {'55': {'NumberOfLaps': 3, 'Sectors': {'2': {'Value': '24.386'}}, 'Speeds': {'FL': {'Value': '250'}}, 'BestLapTime': {'Value': '1:28.552', 'Lap': 2}, 'LastLapTime': {'Value': '1:26.552', 'OverallFastest': True, 'PersonalFastest': True}}}}, '2025-07-05T10:38:19.212Z']"
 
-    ## MQTT
-    mock_mqtt.queue_message.assert_called_once()
-    expected_payload = json.dumps({"driver": "SAI", "driver_number" : "55", "team": "Williams"})
-    mock_mqtt.queue_message.assert_called_with(MqttTopics.LEADER_TOPIC, expected_payload)
+        process_lap_time_line(new_fastest_lap_line, state, mock_mqtt)
+        # Asserts
+        ## States
+        assert state.fastest_lap_info.time == timedelta(minutes=1, seconds=26, microseconds=552000)
+        assert state.fastest_lap_info.driver == 'SAI'
+        assert state.fastest_lap_info.team == 'Williams'
 
-def test_slower_lap_registered_no_lead_change(state:SessionState, mock_mqtt: Mock):
-    """Tests that a slower lap do not trigger any changes in lead time"""
-    state.session_type = 'qualifying'
-    state.set_fastest_lap(lap_time=timedelta(minutes=1, seconds=20), driver='VER', team='Red Bull')
-    state.set_session_lead(driver='VER', driver_number='1', team='Red Bull')
-    new_fastest_lap_line = "['TimingData', {'Lines': {'10': {'NumberOfLaps': 3, 'Sectors': {'2': {'Value': '24.386'}}, 'Speeds': {'FL': {'Value': '250'}}, 'BestLapTime': {'Value': '1:28.552', 'Lap': 2}, 'LastLapTime': {'Value': '1:28.552', 'OverallFastest': True, 'PersonalFastest': True}}}}, '2025-07-05T10:38:19.212Z']"
+        ## MQTT
+        mock_mqtt.queue_message.assert_called_once()
+        expected_payload = json.dumps({"driver": "SAI", "driver_number" : "55", "team": "Williams", "team_color": "1868DB"})
+        mock_mqtt.queue_message.assert_called_with(MqttTopics.LEADER_TOPIC, expected_payload)
 
-    # Execute
-    process_lap_time_line(new_fastest_lap_line, state, mock_mqtt)
-    
-    assert state.fastest_lap_info.time == timedelta(minutes=1, seconds=20)
-    assert state.fastest_lap_info.driver == "VER"
-    assert state.fastest_lap_info.team == "Red Bull"
-    mock_mqtt.queue_message.assert_not_called()
+    def test_slower_lap_registered_no_lead_change(self, state:SessionState, mock_mqtt: Mock):
+        """Tests that a slower lap do not trigger any changes in lead time"""
+        state.session_type = 'qualifying'
+        state.set_fastest_lap(lap_time=timedelta(minutes=1, seconds=20), driver='VER', team='Red Bull')
+        state.set_session_lead(driver='VER', driver_number='1', team='Red Bull')
+        new_fastest_lap_line = "['TimingData', {'Lines': {'10': {'NumberOfLaps': 3, 'Sectors': {'2': {'Value': '24.386'}}, 'Speeds': {'FL': {'Value': '250'}}, 'BestLapTime': {'Value': '1:28.552', 'Lap': 2}, 'LastLapTime': {'Value': '1:28.552', 'OverallFastest': True, 'PersonalFastest': True}}}}, '2025-07-05T10:38:19.212Z']"
 
+        # Execute
+        process_lap_time_line(new_fastest_lap_line, state, mock_mqtt)
+        
+        assert state.fastest_lap_info.time == timedelta(minutes=1, seconds=20)
+        assert state.fastest_lap_info.driver == "VER"
+        assert state.fastest_lap_info.team == "Red Bull"
+        mock_mqtt.queue_message.assert_not_called()
 
+    ## Test Qualifying transitions.
+    def test_qualifying_transitions(self, state: SessionState, mock_mqtt: Mock, freezer):
+        """Testing that Qualifying ends, transitions between states and resets inbetween"""
+        # Setup
+        def check_for_reset(state: SessionState): # mimics the if block in main.py's while loop
+            if (state.session_type == 'qualifying' and 
+                state.cooldown_active and 
+                state.session_end_time and 
+                state.quali_session != 'Q3'):
+                if (time.monotonic() - state.session_end_time) > 180:
+                    state.reset_for_next_quali_segment()
 
-## Test Qualifying transitions.
-def test_qualifying_transitions(state: SessionState, mock_mqtt: Mock, freezer):
-    """Testing that Qualifying ends, transitions between states and resets inbetween"""
-    # Setup
-    def check_for_reset(state: SessionState): # mimics the if block in main.py's while loop
-        if (state.session_type == 'qualifying' and 
-            state.cooldown_active and 
-            state.session_end_time and 
-            state.quali_session != 'Q3'):
-            if (time.monotonic() - state.session_end_time) > 180:
-                state.reset_for_next_quali_segment()
+        fast_lap_time = timedelta(minutes=1, seconds=28, microseconds=552000)
+        fast_lap_time_line = "['TimingData', {'Lines': {'10': {'NumberOfLaps': 3, 'Sectors': {'2': {'Value': '24.386'}}, 'Speeds': {'FL': {'Value': '250'}}, 'BestLapTime': {'Value': '1:28.552', 'Lap': 2}, 'LastLapTime': {'Value': '1:28.552', 'OverallFastest': True, 'PersonalFastest': True}}}}, '2025-07-05T10:38:19.212Z']"
+        chequered_flag_line = "['RaceControlMessages', {'Messages': {'14': {'Utc': '2025-07-05T14:27:49', 'Category': 'Flag', 'Flag': 'CHEQUERED', 'Scope': 'Track', 'Message': 'CHEQUERED FLAG'}}}, '2025-07-05T14:27:49.153Z']"
 
-    fast_lap_time = timedelta(minutes=1, seconds=28, microseconds=552000)
-    fast_lap_time_line = "['TimingData', {'Lines': {'10': {'NumberOfLaps': 3, 'Sectors': {'2': {'Value': '24.386'}}, 'Speeds': {'FL': {'Value': '250'}}, 'BestLapTime': {'Value': '1:28.552', 'Lap': 2}, 'LastLapTime': {'Value': '1:28.552', 'OverallFastest': True, 'PersonalFastest': True}}}}, '2025-07-05T10:38:19.212Z']"
-    chequered_flag_line = "['RaceControlMessages', {'Messages': {'14': {'Utc': '2025-07-05T14:27:49', 'Category': 'Flag', 'Flag': 'CHEQUERED', 'Scope': 'Track', 'Message': 'CHEQUERED FLAG'}}}, '2025-07-05T14:27:49.153Z']"
+        state.session_type = 'qualifying'
+        process_lap_time_line(fast_lap_time_line, state, mock_mqtt)
 
-    state.session_type = 'qualifying'
-    process_lap_time_line(fast_lap_time_line, state, mock_mqtt)
+        # Chequered flag Q1 check
+        process_race_control_line(chequered_flag_line, state, mock_mqtt)
 
-    # Chequered flag Q1 check
-    process_race_control_line(chequered_flag_line, state, mock_mqtt)
+        assert state.cooldown_active == True
+        assert state.session_end_time is not None
+        print(f"DEBUG - Q1 should have ended: {state.session_end_time}")
 
-    assert state.cooldown_active == True
-    assert state.session_end_time is not None
-    print(f"DEBUG - Q1 should have ended: {state.session_end_time}")
+        freezer.tick(timedelta(seconds=200))
+        check_for_reset(state)
+        assert state.cooldown_active == False
+        assert state.session_end_time is None
+        assert state.quali_session == 'Q2'
+        assert state.fastest_lap_info.time > fast_lap_time
 
-    freezer.tick(timedelta(seconds=200))
-    check_for_reset(state)
-    assert state.cooldown_active == False
-    assert state.session_end_time is None
-    assert state.quali_session == 'Q2'
-    assert state.fastest_lap_info.time > fast_lap_time
+        # Set new fast lap right after chequered flag (check that it doesn't reset too quickly)
+        process_race_control_line(chequered_flag_line, state, mock_mqtt)
+        assert state.cooldown_active == True
+        assert state.session_end_time is not None   
+        freezer.tick(timedelta(seconds=30))
+        process_lap_time_line(fast_lap_time_line, state, mock_mqtt)
+        assert state.fastest_lap_info.time == fast_lap_time
 
-    # Set new fast lap right after chequered flag (check that it doesn't reset too quickly)
-    process_race_control_line(chequered_flag_line, state, mock_mqtt)
-    assert state.cooldown_active == True
-    assert state.session_end_time is not None   
-    freezer.tick(timedelta(seconds=30))
-    process_lap_time_line(fast_lap_time_line, state, mock_mqtt)
-    assert state.fastest_lap_info.time == fast_lap_time
-
-    # Wait for Q3 to start
-    freezer.tick(timedelta(seconds=170))
-    check_for_reset(state)
-    assert state.cooldown_active == False
-    assert state.session_end_time is None
-    assert state.quali_session == 'Q3'
-    assert state.fastest_lap_info.time > fast_lap_time
+        # Wait for Q3 to start
+        freezer.tick(timedelta(seconds=170))
+        check_for_reset(state)
+        assert state.cooldown_active == False
+        assert state.session_end_time is None
+        assert state.quali_session == 'Q3'
+        assert state.fastest_lap_info.time > fast_lap_time
 
 ## Yellow Flag and Clear
 def test_yellow_flag_and_clear_scenario(state: SessionState, mock_mqtt: Mock):
