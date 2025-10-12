@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Team Color to the MQTT message on leader
 - Template files for the configs
 
+### CHANGED
+- Moving business logic in `main.py` to dedicated functions
+
 ### REMOVED
 - `config.py` from being tracked in the git repo
 
