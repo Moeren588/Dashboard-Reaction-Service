@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+### ADDED
+- Team Color to drs_data
+- Team Color to the MQTT message on leader
+- Template files for the configs
+
+### REMOVED
+- `config.py` from being tracked in the git repo
+
 ## [0.6.2] - 2025-10-11
 
 ### FIXED
