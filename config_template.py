@@ -8,3 +8,11 @@ CACHE_FILENAME = 'cache.txt'
 # the MQTT Broker. This is because messages are received 
 # x - seconds before you see them on the broadcast.
 PUBLISH_DELAY = 54
+
+
+# Used to determine if and how often DRS will save a session cache
+# This is used in case the service crashes or fails and a restart
+# is required. This will hopefully still keep the latest result of 
+# interest.
+SESSION_CACHING_ENABLED = True
+SESSION_CACHING_INTERVAL = 10

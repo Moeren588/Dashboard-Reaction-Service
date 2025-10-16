@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Team Color to drs_data
 - Team Color to the MQTT message on leader
 - Template files for the configs
+- Session Caching
+- Added tests for `main.py`
 
 ### CHANGED
 - Moving business logic in `main.py` to dedicated functions
