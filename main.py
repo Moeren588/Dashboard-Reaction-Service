@@ -14,7 +14,7 @@ from src.drs.mqtt_handler import MQTTHandler
 from src.drs.mqtt_topics import MqttTopics
 import src.drs.session_caching as session_caching
 
-DRS_VERSION = "0.6.3 ALPHA"
+DRS_VERSION = "0.7.0"
 
 SESSION_MAP = {
     'p' : 'practice',
@@ -61,8 +61,15 @@ def load_drs_data(filename : str = "drs_data.json") -> dict:
         logging.error(f"Could not decode JSON from {data_path}. Check for syntax errors: {e}")
         return {}
     
-def setup(args) -> tuple[SessionState, MQTTHandler, queue.Queue]:
+def setup(session_type: str) -> tuple[SessionState, MQTTHandler, queue.Queue]:
     """Handles all initial setup and object creation."""
+    normalized_session = SESSION_MAP.get(session_type.lower())
+
+    if not normalized_session:
+        logging.error(f"Error: Invalid session type '{session_type}'.")
+        logging.error(f"Valid options are: {', '.join(SESSION_MAP.keys())}")
+        exit(1)
+
     drs_data = load_drs_data()
     if not drs_data:
         logging.error("Could not load DRS data. Exiting.")
@@ -138,11 +145,13 @@ def main_loop(session_state:SessionState, mqtt: MQTTHandler, command_queue: queu
 
 def apply_forced_lead(session_state: SessionState, mqtt: MQTTHandler, team_key: str | None):
     """Force sets the lead on start if one is provided"""
-    if not team_key: return
+    if not team_key: 
+        return
 
     logging.info(f"Setting initial leading team as {team_key}")
     try:
-        forced_lead_team = session_state.teams_data.get(team_key.lower(), None)
+        clean_team_key = team_key.strip().lower().replace(' ', '_')
+        forced_lead_team = session_state.teams_data.get(clean_team_key, None)
         if not forced_lead_team:
             logging.warning(f"Unable to find a team named {team_key}, skipping.")
             return
@@ -171,16 +180,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    normalized_session = SESSION_MAP.get(args.session_type.lower())
-
-    if not normalized_session:
-        logging.error(f"Error: Invalid session type '{args.session_type}'.")
-        logging.error(f"Valid options are: {', '.join(SESSION_MAP.keys())}")
-        exit(1)
-
-    args = parser.parse_args()
-
-    session_state, mqtt, command_queue = setup(args)
+    session_state, mqtt, command_queue = setup(args.session_type)
     resumed_state = session_caching.load_state()
 
     if resumed_state:
@@ -189,6 +189,16 @@ if __name__ == "__main__":
             session_state = resumed_state
 
     apply_forced_lead(session_state, mqtt, args.force_lead)
+
+    if session_state.session_type == 'race' and not session_state.current_session_lead.team:
+        logging.error("="*50)
+        logging.error("FATAL: Starting a 'race' session with no leader set.")
+        logging.error("Please provide the P1 team using the --force-lead (-fl) argument.")
+        logging.error('Example: python main.py -fl "Red Bull"')
+        logging.error("="*50)
+
+        mqtt.disconnect()
+        exit(1)
 
     try:
         main_loop(session_state, mqtt, command_queue)

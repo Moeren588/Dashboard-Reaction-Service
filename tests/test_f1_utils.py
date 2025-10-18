@@ -145,7 +145,7 @@ class TestProcessLapTimeLine:
         assert state.fastest_lap_info.time > fast_lap_time
 
 ## Yellow Flag and Clear
-def test_yellow_flag_and_clear_scenario(state: SessionState, mock_mqtt: Mock):
+def test_yellow_flag_from_green(state: SessionState, mock_mqtt: Mock):
     """Testing when yellow flags are raised and then cleared"""
     # Set yellow flag in sector 2
     yellow_flag_line = "['RaceControlMessages', {'Messages': {'56': {'Utc': '2025-07-05T11:39:56', 'Category': 'Flag', 'Flag': 'YELLOW', 'Scope': 'Sector', 'Sector': 2, 'Message': 'YELLOW IN TRACK SECTOR 2'}}}, '2025-07-05T11:39:56.262Z']"
@@ -155,15 +155,59 @@ def test_yellow_flag_and_clear_scenario(state: SessionState, mock_mqtt: Mock):
     # Assert
     ## States
     assert state.race_state == 'YELLOW'
-    assert 2 in state.yellow_flags
+    assert state.yellow_flags == {2}
 
     ## MQTT
     mock_mqtt.queue_message.assert_called_once()
     expected_payload = json.dumps({"flag": "YELLOW", "message": "YELLOW IN TRACK SECTOR 2"})
     mock_mqtt.queue_message.assert_called_with(MqttTopics.FLAG_TOPIC, expected_payload)
 
+# Need a test to add one more sector
+def test_yellow_flag_while_in_yellow(state: SessionState, mock_mqtt: Mock):
+    """Testing adding a new yellow flag to sector"""
+    # Setup
+    state.set_race_state('YELLOW')
+    state.add_sector_to_yellow_flags(2)
+
+    # Set yellow flag in Sector 3
+    yellow_flag_line = "['RaceControlMessages', {'Messages': {'56': {'Utc': '2025-07-05T11:39:56', 'Category': 'Flag', 'Flag': 'YELLOW', 'Scope': 'Sector', 'Sector': 3, 'Message': 'YELLOW IN TRACK SECTOR 3'}}}, '2025-07-05T11:39:56.262Z']"
+
+    process_race_control_line(yellow_flag_line, state, mock_mqtt)
+
+    # ASSERT
+    assert state.race_state == 'YELLOW'
+    assert state.yellow_flags == {2, 3}
+
+    mock_mqtt.queue_message.assert_not_called() # No new MQTT should be sent
+
+def test_yellow_flag_cleared_stay_in_yello(state: SessionState, mock_mqtt: Mock):
+    """Testing that a flag can be removed, but we remain in yellow"""
+    # Setup
+    state.set_race_state('YELLOW')
+    state.add_sector_to_yellow_flags(2)
+    state.add_sector_to_yellow_flags(3)
+
     # Clear yellow flag
-    clear_flag_line = "['RaceControlMessages', {'Messages': {'13': {'Utc': '2025-09-06T14:22:44', 'Category': 'Flag', 'Flag': 'CLEAR', 'Scope': 'Sector', 'Sector': 2, 'Message': 'CLEAR IN TRACK SECTOR 8'}}}, '2025-09-06T14:22:43.772Z']"
+    clear_flag_line = "['RaceControlMessages', {'Messages': {'13': {'Utc': '2025-09-06T14:22:44', 'Category': 'Flag', 'Flag': 'CLEAR', 'Scope': 'Sector', 'Sector': 3, 'Message': 'CLEAR IN TRACK SECTOR 3'}}}, '2025-09-06T14:22:43.772Z']"
+    process_race_control_line(clear_flag_line, state, mock_mqtt)
+
+    # ASSERT
+    assert state.race_state == 'YELLOW'
+    assert state.yellow_flags == {2}
+
+    mock_mqtt.queue_message.assert_not_called() # No new MQTT should be sent
+
+
+# Need a test that removes one sector, but remain in yellow
+
+def test_yellow_flag_clear_back_to_green(state: SessionState, mock_mqtt: Mock):
+    """Testing that yellow flags are cleared and we go back to green conditions"""
+    # Setup
+    state.add_sector_to_yellow_flags(2)
+    state.set_race_state('YELLOW')
+
+    # Clear yellow flag
+    clear_flag_line = "['RaceControlMessages', {'Messages': {'13': {'Utc': '2025-09-06T14:22:44', 'Category': 'Flag', 'Flag': 'CLEAR', 'Scope': 'Sector', 'Sector': 2, 'Message': 'CLEAR IN TRACK SECTOR 2'}}}, '2025-09-06T14:22:43.772Z']"
     process_race_control_line(clear_flag_line, state, mock_mqtt)
 
     # ASSERT
@@ -172,7 +216,7 @@ def test_yellow_flag_and_clear_scenario(state: SessionState, mock_mqtt: Mock):
     assert len(state.yellow_flags) == 0
 
     ## MQTT
-    assert mock_mqtt.queue_message.call_count == 2
+    mock_mqtt.queue_message.assert_called_once()
     expected_payload = json.dumps({"flag": "GREEN", "message": "GREEN FLAG, ALL YELLOW CLEARED"})
     mock_mqtt.queue_message.assert_called_with(MqttTopics.FLAG_TOPIC, expected_payload)
 
@@ -190,6 +234,20 @@ def test_safety_car_deployed_scenario(state: SessionState, mock_mqtt: Mock):
     mock_mqtt.queue_message.assert_called_once()
     expected_payload = json.dumps({"flag": "SAFETY CAR", "message": "SAFETY CAR"})
     mock_mqtt.queue_message.assert_called_with(MqttTopics.FLAG_TOPIC, expected_payload)
+
+def test_safety_car_deployed_while_in_yellow_scenario(state: SessionState, mock_mqtt: Mock):
+    """Testing full safety car deployment while under yellow flag condition"""
+    # Setup
+    state.set_race_state('YELLOW')
+    state.add_sector_to_yellow_flags(2)
+
+    safety_car_line = "['RaceControlMessages', {'Messages': {'97': {'Utc': '2025-07-06T14:29:14', 'Lap': 14, 'Category': 'SafetyCar', 'Status': 'DEPLOYED', 'Mode': 'SAFETY CAR', 'Message': 'SAFETY CAR DEPLOYED'}}}, '2025-07-06T14:29:14.267Z']"
+    
+    process_race_control_line(safety_car_line, state, mock_mqtt)
+
+    # Asserting
+    assert state.race_state == 'SAFETY CAR'
+    assert state.yellow_flags == set()
     
 # Testing Full safety car In This Lap
 def test_safety_car_in_scenario(state: SessionState, mock_mqtt: Mock):
@@ -222,6 +280,20 @@ def test_vsc_deployed_scenario(state: SessionState, mock_mqtt: Mock):
     expected_payload = json.dumps({"flag": "SAFETY CAR", "message": "VIRTUAL SAFETY CAR"})
     mock_mqtt.queue_message.assert_called_with(MqttTopics.FLAG_TOPIC, expected_payload)
 
+# Testing Virtual Safety Car Deployed
+def test_vsc_deployed_while_in_yellow_scenario(state: SessionState, mock_mqtt: Mock):
+    """Testing virtual safety car deployment while in yellow"""
+    # Setup
+    vsc_line = "['RaceControlMessages', {'Messages': {'67': {'Utc': '2025-07-06T14:05:48', 'Lap': 2, 'Category': 'SafetyCar', 'Status': 'DEPLOYED', 'Mode': 'VIRTUAL SAFETY CAR', 'Message': 'VIRTUAL SAFETY CAR DEPLOYED'}}}, '2025-07-06T14:05:47.647Z']"
+    state.set_race_state('YELLOW')
+    state.add_sector_to_yellow_flags(2)
+
+    process_race_control_line(vsc_line, state, mock_mqtt)
+
+    # Asserting
+    assert state.race_state == 'SAFETY CAR'
+    assert state.yellow_flags == set()   
+
 # Testing Virtual Safety Car Ending
 def test_vsc_ending_scenario(state:SessionState, mock_mqtt: Mock):
     """Testing full safety car in this lap"""
@@ -240,7 +312,7 @@ def test_vsc_ending_scenario(state:SessionState, mock_mqtt: Mock):
 
 # Test Red Flag
 def test_red_flag_scenario(state: SessionState, mock_mqtt: Mock):
-    """Testing when red flags are raised and then cleared"""
+    """Testing when red flags are raised"""
     # Set red flag
     red_flag_line = "['RaceControlMessages', {'Messages': {'50': {'Utc': '2025-07-05T11:33:58', 'Category': 'Flag', 'Flag': 'RED', 'Scope': 'Track', 'Message': 'RED FLAG'}}}, '2025-07-05T11:33:58.102Z']"
     process_race_control_line(red_flag_line, state, mock_mqtt)
@@ -252,6 +324,21 @@ def test_red_flag_scenario(state: SessionState, mock_mqtt: Mock):
     mock_mqtt.queue_message.assert_called_once()
     expected_payload = json.dumps({"flag": "RED", "message": "RED FLAG"})
     mock_mqtt.queue_message.assert_called_with(MqttTopics.FLAG_TOPIC, expected_payload)
+
+def test_red_flag_from_yellow_scenario(state: SessionState, mock_mqtt: Mock):
+    """Testing when red flags are raised while in a yellow flag scenario"""
+    # Setup
+    state.set_race_state('YELLOW')
+    state.add_sector_to_yellow_flags(2)
+
+    # Set red flag
+    red_flag_line = "['RaceControlMessages', {'Messages': {'50': {'Utc': '2025-07-05T11:33:58', 'Category': 'Flag', 'Flag': 'RED', 'Scope': 'Track', 'Message': 'RED FLAG'}}}, '2025-07-05T11:33:58.102Z']"
+    process_race_control_line(red_flag_line, state, mock_mqtt)
+
+    # Assert
+    ## States
+    assert state.race_state == 'RED'
+    assert state.yellow_flags == set()   
     
 def test_red_flag_ending_scenario(state: SessionState, mock_mqtt: Mock):
     """Testing that end of Red flag and back to Green conditions"""
