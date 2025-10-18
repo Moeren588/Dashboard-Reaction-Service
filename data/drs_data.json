@@ -1,146 +1,186 @@
 {
-    "teams" : {
-        "red_bull" : {
-            "name" : "Red Bull",
-            "driver_numbers" : ["1", "22"]
+    "teams": {
+        "red_bull": {
+            "name": "Red Bull",
+            "driver_numbers": [
+                "1",
+                "22"
+            ],
+            "color_hex": "4781D7"
         },
-        "ferrari" : {
-            "name" : "Ferrari",
-            "driver_numbers" : ["16", "44"]
+        "ferrari": {
+            "name": "Ferrari",
+            "driver_numbers": [
+                "16",
+                "44"
+            ],
+            "color_hex": "ED1131"
         },
-        "mercedes" : {
-            "name" : "Mercedes",
-            "driver_numbers" : ["12", "63"]
+        "mercedes": {
+            "name": "Mercedes",
+            "driver_numbers": [
+                "12",
+                "63"
+            ],
+            "color_hex": "00D7B6"
         },
-        "mclaren" : {
-            "name" : "McLaren",
-            "driver_numbers" : ["4", "81"]
+        "mclaren": {
+            "name": "McLaren",
+            "driver_numbers": [
+                "4",
+                "81"
+            ],
+            "color_hex": "F47600"
         },
-        "aston_martin" : {
-            "name" : "Aston Martin",
-            "driver_numbers" : ["14", "18"]
+        "aston_martin": {
+            "name": "Aston Martin",
+            "driver_numbers": [
+                "14",
+                "18"
+            ],
+            "color_hex": "229971"
         },
-        "alpine" : {
-            "name" : "Alpine",
-            "driver_numbers" : ["10", "43"]
+        "alpine": {
+            "name": "Alpine",
+            "driver_numbers": [
+                "10",
+                "43"
+            ],
+            "color_hex": "00A1E8"
         },
-        "racing_bulls" : {
-            "name" : "RB",
-            "driver_numbers" : ["6", "30"]
+        "racing_bulls": {
+            "name": "RB",
+            "driver_numbers": [
+                "6",
+                "30"
+            ],
+            "color_hex": "6C98FF"
         },
-        "haas" : {
-            "name" : "HAAS",
-            "driver_numbers" : ["31", "87"]
+        "haas": {
+            "name": "HAAS",
+            "driver_numbers": [
+                "31",
+                "87"
+            ],
+            "color_hex": "9C9FA2"
         },
-        "sauber" : {
-            "name" : "Sauber",
-            "driver_numbers" : ["5", "27"]
+        "sauber": {
+            "name": "Sauber",
+            "driver_numbers": [
+                "5",
+                "27"
+            ],
+            "color_hex": "01C00E"
         },
-        "williams" : {
-            "name" : "Williams",
-            "driver_numbers" : ["23", "55"]
+        "williams": {
+            "name": "Williams",
+            "driver_numbers": [
+                "23",
+                "55"
+            ],
+            "color_hex": "1868DB"
         }
     },
-    "drivers" : {
-        "1" : {
-            "name" : "Max Verstappen",
-            "abbreviation" : "VER",
-            "team_key" : "red_bull"
+    "drivers": {
+        "1": {
+            "name": "Max Verstappen",
+            "abbreviation": "VER",
+            "team_key": "red_bull"
         },
-        "22" : {
-            "name" : "Yuki Tsunoda",
-            "abbreviation" : "TSU",
-            "team_key" : "red_bull"
+        "22": {
+            "name": "Yuki Tsunoda",
+            "abbreviation": "TSU",
+            "team_key": "red_bull"
         },
-        "16" : {
-            "name" : "Charles Leclerc",
-            "abbreviation" : "LEC",
-            "team_key" : "ferrari"
+        "16": {
+            "name": "Charles Leclerc",
+            "abbreviation": "LEC",
+            "team_key": "ferrari"
         },
-        "44" : {
-            "name" : "Lewis Hamilton",
-            "abbreviation" : "LEW",
-            "team_key" : "ferrari"
+        "44": {
+            "name": "Lewis Hamilton",
+            "abbreviation": "LEW",
+            "team_key": "ferrari"
         },
-        "12" : {
-            "name" : "Kimi Antonelli",
-            "abbreviation" : "ANT",
-            "team_key" : "mercedes"
+        "12": {
+            "name": "Kimi Antonelli",
+            "abbreviation": "ANT",
+            "team_key": "mercedes"
         },
-        "63" : {
-            "name" : "George Russell",
-            "abbreviation" : "RUS",
-            "team_key" : "mercedes"
+        "63": {
+            "name": "George Russell",
+            "abbreviation": "RUS",
+            "team_key": "mercedes"
         },
-        "4" : {
-            "name" : "Lando Norris",
-            "abbreviation" : "NOR",
-            "team_key" : "mclaren"
+        "4": {
+            "name": "Lando Norris",
+            "abbreviation": "NOR",
+            "team_key": "mclaren"
         },
-        "81" : {
-            "name" : "Oscar Piastri",
-            "abbreviation" : "PIA",
-            "team_key" : "mclaren"
+        "81": {
+            "name": "Oscar Piastri",
+            "abbreviation": "PIA",
+            "team_key": "mclaren"
         },
-        "14" : {
-            "name" : "Fernando Alonso",
-            "abbreviation" : "ALO",
-            "team_key" : "aston_martin"
+        "14": {
+            "name": "Fernando Alonso",
+            "abbreviation": "ALO",
+            "team_key": "aston_martin"
         },
-        "18" : {
-            "name" : "Lance Stroll",
-            "abbreviation" : "STR",
-            "team_key" : "aston_martin"
+        "18": {
+            "name": "Lance Stroll",
+            "abbreviation": "STR",
+            "team_key": "aston_martin"
         },
-        "10" : {
-            "name" : "Pierre Gasly",
-            "abbreviation" : "GAS",
-            "team_key" : "alpine"
+        "10": {
+            "name": "Pierre Gasly",
+            "abbreviation": "GAS",
+            "team_key": "alpine"
         },
-        "43" : {
-            "name" : "Franco Colapinto",
-            "abbreviation" : "COL",
-            "team_key" : "alpine"
+        "43": {
+            "name": "Franco Colapinto",
+            "abbreviation": "COL",
+            "team_key": "alpine"
         },
-        "6" : {
-            "name" : "Isack Hadjar",
-            "abbreviation" : "HAD",
-            "team_key" : "racing_bulls"
+        "6": {
+            "name": "Isack Hadjar",
+            "abbreviation": "HAD",
+            "team_key": "racing_bulls"
         },
-        "30" : {
-            "name" : "Liam Lawson",
-            "abbreviation" : "LAW",
-            "team_key" : "racing_bulls"
+        "30": {
+            "name": "Liam Lawson",
+            "abbreviation": "LAW",
+            "team_key": "racing_bulls"
         },
-        "31" : {
-            "name" : "Estaban Ocon",
-            "abbreviation" : "OCO",
-            "team_key" : "haas"
+        "31": {
+            "name": "Estaban Ocon",
+            "abbreviation": "OCO",
+            "team_key": "haas"
         },
-        "87" : {
-            "name" : "Oliver Bearman",
-            "abbreviation" : "BEA",
-            "team_key" : "haas"
+        "87": {
+            "name": "Oliver Bearman",
+            "abbreviation": "BEA",
+            "team_key": "haas"
         },
-        "5" : {
-            "name" : "Gabriel Bortoleto",
-            "abbreviation" : "BOR",
-            "team_key" : "sauber"
+        "5": {
+            "name": "Gabriel Bortoleto",
+            "abbreviation": "BOR",
+            "team_key": "sauber"
         },
-        "27" : {
-            "name" : "Nico Hulkenberg",
-            "abbreviation" : "HUL",
-            "team_key" : "sauber"
+        "27": {
+            "name": "Nico Hulkenberg",
+            "abbreviation": "HUL",
+            "team_key": "sauber"
         },
-        "55" : {
-            "name" : "Carlos Sainz",
-            "abbreviation" : "SAI",
-            "team_key" : "williams"
+        "55": {
+            "name": "Carlos Sainz",
+            "abbreviation": "SAI",
+            "team_key": "williams"
         },
-        "23" : {
-            "name" : "Alexander Albon",
-            "abbreviation" : "ALB",
-            "team_key" : "williams"
+        "23": {
+            "name": "Alexander Albon",
+            "abbreviation": "ALB",
+            "team_key": "williams"
         }
     }
 }

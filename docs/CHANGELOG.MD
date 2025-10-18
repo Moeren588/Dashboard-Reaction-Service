@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+## [0.7.0] - 2025-10-18 (FREEDOM release)
+
+### ADDED
+- Team Color to drs_data
+- Team Color to the MQTT message on leader
+- Template files for the configs
+- Session Caching (#10)
+- Added tests for `main.py` and `session_state.py`
+- Deleted lap time debug line (not used yet)
+
+### CHANGED
+- Moving business logic in `main.py` to dedicated functions (#16)
+- `--Force-Lead` (`-fl`) is now **required** to provide for Races (Austin SR T1 is a great example for why the service needs to know how to reset after a Safety Car)
+
+### REMOVED
+- `config.py` from being tracked in the git repo
+
 ## [0.6.2] - 2025-10-11
 
 ### FIXED

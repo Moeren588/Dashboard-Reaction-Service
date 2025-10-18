@@ -26,16 +26,24 @@ To put it simply: it is a tool that I use to get an exact "here and now" picture
 * Smart lights/devices configured in Home Assistant (e.g., Philips Hue to respond to the events).
 
 ### Project Files
-Before running, you must create two configuration files:
+Before running, you must create two configuration files (easiest is to duplicate the two template files in the project and remove the `_template` suffix):
 
-1. `mqtt_config.py`: Holds your MQTT broker credentials. Create it in the root directory.
+1. `mqtt_config.py`: Holds your MQTT broker credentials.
 ```python
 MQTT_BROKER_IP = "0.0.0.0" 
 MQTT_PORT = 1883 # For unsecure communication running over local network
 MQTT_USERNAME = "service_user_name"
 MQTT_PASSWORD = "your_strong_password" # MQTT password that's also present in your Home Assistant
 ```
-2. `config.py`: Contains key variables for the service. You can edit the existing file to set your preferred initial broadcast delay and cache filename.
+2. `config.py`: Contains key variables for the service.
+```python
+CACHE_FILENAME = 'cache.txt'  # Important that this matches the one Fast-F1 Livetiming writes to
+
+PUBLISH_DELAY = 54
+
+SESSION_CACHING_ENABLED = True
+SESSION_CACHING_INTERVAL = 10
+```
 
 > [!NOTE]
 > **A Note on the `PUBLISH_DELAY`**
@@ -49,6 +57,17 @@ MQTT_PASSWORD = "your_strong_password" # MQTT password that's also present in yo
 > You'll need to fine-tune this value based on your specific broadcast: 
 > - A good-guess starting point is often between **50 and 60 seconds.** (based on personal experience)
 > - Remember, you can adjust this delay live using the **Delay Calibration** buttons in Home Assistant once the session has started.
+
+#### Caching
+To protect against unexpected crashes or interruptions, the service includes a session caching feature.
+
+* **How it works:** Every `SESSION_CACHING_INTERVAL` seconds, the service checks if the session state has changed. If it has, the current state is automatically saved to a cache file (`session_cache.pkl`) in the root directory. The state is also saved when you stop the service gracefully (e.g., with Ctrl+C).
+* **On Startup:** If the service finds this cache file, it will ask if you want to resume from the previously saved state.
+* **Purpose:** This allows you to restart the service mid-session without losing critical data, which is especially useful for tracking the fastest lap in Practice and Qualifying.
+
+When you stop the service, it will ask if the session is finished. If you confirm, the cache file will be deleted. There is no reason to keep a cache file around after a session is complete.
+
+You can also turn off the caching feature by setting `SESSION_CACHING_ENABLED` to `False`.
 
 ## Installation
 
@@ -104,7 +123,17 @@ python main.py qualifying --force-lead "Ferrari"
   * `practice`(or `p`, `fp`)
   * `qualifying`(or `q`, `"sprint qualifying"`, `sq`) 
   * `race`(or `p`, `"sprint race"`, `sr`) 
-* `--force-lead <TEAM_NAME>`**(Optional)**: Sets an initial leader state on startup. This is useful for testing automations without waiting for a leader to be established.
+* `--force-lead <TEAM_NAME>`**(Conditionally Required):** Sets an initial leader state on startup. This can be smart to use during races to ensure the leader is set in the system from the start.
+  * **Optional** for `practice` and `qualifying`
+  * **Required** for `race` sessions **unless** you are resuming from a session cache.
+
+> [!IMPORTANT]
+> **Why is `--force-lead` required for races?**
+>
+> It is *not* unthinkable that something will happen before a race lead change is detected by the service in a race (think turn 1). If there are any flags or safety cars before a lead has been detected by the service, it will **not** be able to set the correct lead team back when we go back to full racing. So say Piastri is leading down to turn 1 and your living room shines bright Papaya, then a safety car incident happens and your lights flash yellow. When the safety car goes back in the service will know to broadcast that we are back to racing conditions, but will not be able to say "oh and this is the lead".
+> 
+> Providing the P1 team at the start (e.g. `python main.py race -fl "McLaren"`) ensures your automations are correct from the moment the lights go out.
+
 
 # Home Assistant Configuration
 Once the DRS service is running, you need to configure Home Assistant to listen to the MQTT topics. Below you fill find examples for setups and automations.

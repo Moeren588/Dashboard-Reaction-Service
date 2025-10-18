@@ -11,6 +11,8 @@ Lines going from slowest to fastest:
 ['TimingData', {'Lines': {'55': {'NumberOfLaps': 3, 'Sectors': {'2': {'Value': '24.386'}}, 'Speeds': {'FL': {'Value': '250'}}, 'BestLapTime': {'Value': '1:28.552', 'Lap': 2}, 'LastLapTime': {'Value': '1:26.552', 'OverallFastest': True, 'PersonalFastest': True}}}}, '2025-07-05T10:38:19.212Z']
 ['TimingData', {'Lines': {'4': {'NumberOfLaps': 3, 'Sectors': {'2': {'Value': '24.386'}}, 'Speeds': {'FL': {'Value': '250'}}, 'BestLapTime': {'Value': '1:28.552', 'Lap': 2}, 'LastLapTime': {'Value': '1:25.552', 'OverallFastest': True, 'PersonalFastest': True}}}}, '2025-07-05T10:38:19.212Z']
 
+### Lap Time Deleted
+['RaceControlMessages', {'Messages': {'3': {'Utc': '2025-10-17T21:35:06', 'Category': 'Other', 'Message': 'CAR 5 (BOR) TIME 1:36.313 DELETED - TRACK LIMITS AT TURN 19 LAP 3 16:34:16'}}}, '2025-10-17T21:35:06.611Z']
 
 ## Race Lead Change (Race):
 Race change messages, does not matter in what order you test them.

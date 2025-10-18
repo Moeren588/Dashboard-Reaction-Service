@@ -1,5 +1,6 @@
 ## Config
 mqtt_config.py
+config.py
 
 # caches
 ff1_cache/
