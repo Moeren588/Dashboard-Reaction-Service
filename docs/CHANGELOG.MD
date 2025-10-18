@@ -19,10 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### CHANGED
 - Moving business logic in `main.py` to dedicated functions (#16)
-- `--Force-Lead` (`-fl`) is now **required** to provide for Races (Austin SR T1 is a great example for why the service needs to know how to reset after a Safety Car)
+- `--force-lead` (`-fl`) is now **required** to provide for Races (Austin SR T1 is a great example for why the service needs to know how to reset after a Safety Car)
 
 ### REMOVED
 - `config.py` from being tracked in the git repo
+
+### FIXED
+- `--force-lead` being very fragile in the accepted inputs.
 
 ## [0.6.2] - 2025-10-11
 
