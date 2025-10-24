@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+### ADDED
+- Processing of `TrackStatus`:
+  - in `FP1` They changed yellow flags from `RaceControl` to `TrackStatus`
+- Clearing of yellow flag sectors when returning to green (as a just in case missed)
+
 ## [0.7.0] - 2025-10-18 (FREEDOM release)
 
 ### ADDED

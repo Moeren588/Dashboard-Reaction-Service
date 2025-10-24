@@ -14,7 +14,7 @@ from src.drs.mqtt_handler import MQTTHandler
 from src.drs.mqtt_topics import MqttTopics
 import src.drs.session_caching as session_caching
 
-DRS_VERSION = "0.7.0"
+DRS_VERSION = "0.7.1 ALPHA MEXICO"
 
 SESSION_MAP = {
     'p' : 'practice',
@@ -127,6 +127,7 @@ def main_loop(session_state:SessionState, mqtt: MQTTHandler, command_queue: queu
                     f1_utils.process_session_data_line(line, session_state, mqtt)
                     race_lead_process(line, session_state, mqtt)
                     f1_utils.process_race_control_line(line, session_state, mqtt)
+                    f1_utils.process_track_status_line(line, session_state, mqtt)
                 except Exception as e:
                     logging.error(f"Error processing line: {e}")
 

@@ -18,6 +18,7 @@ def return_to_green(state: SessionState, mqtt_handler: MQTTHandler, payload_mess
     """Returns the session to GREEN flag status"""
     logging.info(f'Returning to GREEN flag status from {state.race_state}')
     state.set_race_state("GREEN")
+    state.clear_yellow_flags()
     payload = json.dumps({"flag": "GREEN", "message": payload_message})
     mqtt_handler.queue_message(MqttTopics.FLAG_TOPIC, payload)
     rebroadcast_leader(state, mqtt_handler)
@@ -152,3 +153,29 @@ def process_session_data_line(line:str, state: SessionState, mqtt_handler: MQTTH
                 elif state.race_state == 'RED':
                     return_to_green(state, mqtt_handler, "GREEN FLAG, RED flag cleared")
                     break
+
+def process_track_status_line(line: str, state: SessionState, mqtt_handler: MQTTHandler) -> None:
+    """Processing Track Status Lines, appereantly like 'Yellow' and 'AllClear'"""
+    try:
+        category, payload, _ = ast.literal_eval(line)
+    except (ValueError, SyntaxError):
+        return
+    
+    if category == 'TrackStatus':
+        logging.info(f'Found track status line!')
+        msg = payload.get('Message', None)
+        # 🟡 YELLOW FLAGS 🟡
+        if msg == 'Yellow' and state.race_state == 'GREEN':
+            state.set_race_state('YELLOW')
+            mqtt_payload = json.dumps({"flag": 'YELLOW', "message": 'YELLOW FLAG ON TRACK!'})
+            mqtt_handler.queue_message(MqttTopics.FLAG_TOPIC, mqtt_payload)
+        # 🚩 RED FLAGS 🚩
+        elif msg == 'Red':
+            state.set_race_state('RED')
+            state.clear_yellow_flags()
+            mqtt_payload = json.dumps({"flag": 'RED', "message": 'RED FLAG ON TRACK!'})
+            mqtt_handler.queue_message(MqttTopics.FLAG_TOPIC, mqtt_payload)
+        # 👍 CLEAR Flags 👍
+        elif msg == 'AllClear' and state.race_state != 'GREEN':
+            return_to_green(state, mqtt_handler, 'TRACK CLEAR RETURN TO GREEN!')
+

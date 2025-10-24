@@ -6,7 +6,12 @@ import json
 from datetime import timedelta
 import time
 
-from src.drs.f1_utils import process_session_data_line, process_race_control_line, process_race_lead_line, process_lap_time_line
+from src.drs.f1_utils import \
+    process_session_data_line, \
+    process_race_control_line, \
+    process_race_lead_line, \
+    process_lap_time_line, \
+    process_track_status_line
 from src.drs.mqtt_topics import MqttTopics
 from src.drs.session_state import SessionState
 
@@ -413,9 +418,7 @@ class TestProcessRaceLeadLine:
 
 
     def test_process_race_lead_line_no_p1_data(self, mock_mqtt, state):
-        """
-        Test that the function handles 'TopThree' data that is missing the P1 ('0') key.
-        """
+        """Test that the function handles 'TopThree' data that is missing the P1 ('0') key."""
         line = "['TopThree', {'Lines': {'1': {'RacingNumber': '6', 'Tla': 'HAD', 'BroadcastName': 'I HADJAR', 'FullName': 'Isack HADJAR', 'FirstName': 'Isack', 'LastName': 'Hadjar', 'Reference': 'ISAHAD01', 'Team': 'Racing Bulls', 'TeamColour': '6C98FF', 'LapState': 33}}}, '2025-09-20T12:00:46.302Z']"
         state_before = dataclasses.replace(state)
 
@@ -424,4 +427,39 @@ class TestProcessRaceLeadLine:
         assert state_before == state
         mock_mqtt.queue_message.assert_not_called()
 
+class TestTrackStatusLine:
+    """Pretty new to check after Mexico GP FP1"""
+    def test_track_status_not_changing_green_to_green(self, state: SessionState, mock_mqtt: Mock):
+        """Tests that nothing changes on track clear while in GREEN"""
+        clear_track_line = "['TrackStatus', {'Status': '1', 'Message': 'AllClear', '_kf': True}, '2025-10-24T18:45:45.052Z']"
 
+        process_track_status_line(clear_track_line, state, mock_mqtt)
+
+        assert state.race_state == 'GREEN'
+        mock_mqtt.queue_message.assert_not_called()
+
+    def test_track_status_green_to_yellow(self, mock_mqtt: Mock, state: SessionState):
+        """Tests that the track status goes to yellow (new from Mexico GP)"""
+        yellow_flag_line = "['TrackStatus', {'Status': '2', 'Message': 'Yellow', '_kf': True}, '2025-10-24T19:10:17.604Z']"
+
+        process_track_status_line(yellow_flag_line, state, mock_mqtt)
+
+        # ASSERT
+        assert state.race_state == 'YELLOW'
+        mock_mqtt.queue_message.assert_called_once()
+        excepted_payload = json.dumps({"flag": "YELLOW", "message": "YELLOW FLAG ON TRACK!"})
+        mock_mqtt.queue_message.assert_called_with(MqttTopics.FLAG_TOPIC, excepted_payload)
+
+    def test_track_status_yellow_to_green(self, state: SessionState, mock_mqtt: Mock):
+        """Tests that the track status goes from yellow to green"""
+        state.set_race_state('YELLOW')
+
+        clear_track_line = "['TrackStatus', {'Status': '1', 'Message': 'AllClear', '_kf': True}, '2025-10-24T18:45:45.052Z']"
+
+        process_track_status_line(clear_track_line, state, mock_mqtt)
+
+        # ASSERT
+        assert state.race_state == 'GREEN'
+        mock_mqtt.queue_message.assert_called_once()
+        expected_payload = json.dumps({"flag": "GREEN", "message": "TRACK CLEAR RETURN TO GREEN!"})
+        mock_mqtt.queue_message.assert_called_with(MqttTopics.FLAG_TOPIC, expected_payload)
