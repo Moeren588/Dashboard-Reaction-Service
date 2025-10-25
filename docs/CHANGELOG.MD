@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - in `FP1` They changed yellow flags from `RaceControl` to `TrackStatus`
 - Clearing of yellow flag sectors when returning to green (as a just in case missed)
 
+### CHANGED
+- Moved session retention on shutdown to its own function
+
 ## [0.7.0] - 2025-10-18 (FREEDOM release)
 
 ### ADDED

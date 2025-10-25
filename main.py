@@ -47,6 +47,19 @@ def handle_periodic_caching(current_state: SessionState, last_cached_state: Sess
     
     return last_cached_state, last_cached_time
 
+def handle_shutdown_caching(session_sate: SessionState):
+    """Handles KeyboardInterupt caching based on input"""
+    try:
+        session_caching.save_state(session_sate)
+
+        retain_cache = input("Do you want to retain the session cache (do not keep if session is done)? (y/n): ").lower()
+
+        if retain_cache != 'y':
+            session_caching.delete_state_cache()
+
+    except Exception as e:
+        logging.error(f"Error during shutdown caching: {e}")
+
 
 def load_drs_data(filename : str = "drs_data.json") -> dict:
     """Loads the static F1 driver and team data from the JSON file"""
@@ -204,12 +217,9 @@ if __name__ == "__main__":
     try:
         main_loop(session_state, mqtt, command_queue)
     except KeyboardInterrupt:
-        session_caching.save_state(session_state)
+        handle_shutdown_caching(session_state)
         logging.info("Service stopped by user.")
         logging.shutdown()
-        retain_cache = input("Do you want to retain the session cache (do not keep if session is done)? (y/n): ").lower()
-        if retain_cache != 'y':
-            session_caching.delete_state_cache()
     except FileNotFoundError:
         logging.error(f"[FATAL] Data file not found: {CACHE_FILENAME}")
     except Exception as e:
