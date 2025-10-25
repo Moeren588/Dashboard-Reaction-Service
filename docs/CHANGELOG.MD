@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Processing of `TrackStatus`:
   - in `FP1` They changed yellow flags from `RaceControl` to `TrackStatus`
 - Clearing of yellow flag sectors when returning to green (as a just in case missed)
+- A combined starter.py script (starts both livetiming and DRS)
 
 ### CHANGED
 - Moved session retention on shutdown to its own function
