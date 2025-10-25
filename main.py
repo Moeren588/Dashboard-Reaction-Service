@@ -57,6 +57,9 @@ def handle_shutdown_caching(session_sate: SessionState):
         if retain_cache != 'y':
             session_caching.delete_state_cache()
 
+    except KeyboardInterrupt:
+        logging.warning(f'Keyboard interrupt')
+
     except Exception as e:
         logging.error(f"Error during shutdown caching: {e}")
 

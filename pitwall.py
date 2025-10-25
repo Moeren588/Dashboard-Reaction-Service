@@ -1,3 +1,4 @@
+"""A combined starter script that runs both livetiming and the DRS"""
 import subprocess
 import sys
 import os
@@ -87,19 +88,6 @@ if __name__ == "__main__":
                 logging.info(f"Terminating Livetiming due to main.py shutdown")
                 p1.terminate()
                 p1.wait()
-
-        # while p2.poll is None:
-        #     if p1.poll() is not None:
-        #         # FastF1 died (or most likely broke connection)
-        #         logging.error(f"FastF1 livetiming has cut off!")
-        #         _, stderr_output = p1.communicate()
-        #         if stderr_output:
-        #             logging.error(f"FastF1 stderr:\n{stderr_output.decode()}")
-        #         break
-
-        #     time.sleep(0.5)
-
-        # logging.info(f"main.py process exited with code {p2.poll()}.")
     
     except KeyboardInterrupt:
         logging.info("\nKeyboard interrupt received. Initiating shutdown...")
@@ -112,12 +100,7 @@ if __name__ == "__main__":
 
         if p2 and p2.poll() is None:
             try:
-                if os.name == 'nt':
-                    p2.send_signal(signal.CTRL_C_EVENT)
-                else:
-                    p2.send_signal(signal.SIGINT)
-
-                p2.wait()
+                p2.wait() # Wait for the user input on caching
                 logging.info('main.py has exited.')
             except Exception as e:
                 logging.warning(f'Error signaling main.py: {e}. Falling back to cleanup.')
