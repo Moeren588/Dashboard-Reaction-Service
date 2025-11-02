@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### CHANGED
 - Moved session retention on shutdown to its own function
+- improved docstrings to following modules:
+  - `f1_utils.py`
 
 ## [0.7.0] - 2025-10-18 (FREEDOM release)
 
