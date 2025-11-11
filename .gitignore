@@ -6,6 +6,8 @@ config.py
 ff1_cache/
 *cache.txt
 cache*.txt
+*cache.pkl
+cache*.pkl
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
