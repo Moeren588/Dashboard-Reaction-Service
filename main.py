@@ -14,7 +14,7 @@ from src.drs.mqtt_handler import MQTTHandler
 from src.drs.mqtt_topics import MqttTopics
 import src.drs.session_caching as session_caching
 
-DRS_VERSION = "0.7.1 ALPHA MEXICO"
+DRS_VERSION = "0.8.0 PITWALL"
 
 SESSION_MAP = {
     'p' : 'practice',

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+## [0.8.0] - 2025-11-22 (PITWALL release)
+
 ### ADDED
 - Processing of `TrackStatus`:
   - in `FP1` They changed yellow flags from `RaceControl` to `TrackStatus`
@@ -15,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### CHANGED
 - Moved session retention on shutdown to its own function
+- Updates to `README.md` as work on moving more in-depth info into the Github Wiki has started
 - improved docstrings to following modules:
   - `f1_utils.py`
 
