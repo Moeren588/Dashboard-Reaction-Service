@@ -38,13 +38,24 @@ Note their sectors when pairing with CLEAR flags
 ['RaceControlMessages', {'Messages': {'56': {'Utc': '2025-07-05T11:39:56', 'Category': 'Flag', 'Flag': 'YELLOW', 'Scope': 'Sector', 'Sector': 2, 'Message': 'YELLOW IN TRACK SECTOR 2'}}}, '2025-07-05T11:39:56.262Z']
 ['RaceControlMessages', {'Messages': {'4': {'Utc': '2025-07-04T15:16:09', 'Category': 'Flag', 'Flag': 'DOUBLE YELLOW', 'Scope': 'Sector', 'Sector': 8, 'Message': 'DOUBLE YELLOW IN TRACK SECTOR 8'}}}, '2025-07-04T15:16:09.257Z']
 
+As of Mexican Grand Prix this was used for Yellow Flag:
+['TrackStatus', {'Status': '2', 'Message': 'Yellow', '_kf': True}, '2025-10-24T19:10:17.604Z']
+
+
 ### CLEAR FLAGS
 Used for clearing sectors for yellow flags (they never show a GREEN flag)
 ['RaceControlMessages', {'Messages': {'13': {'Utc': '2025-09-06T14:22:44', 'Category': 'Flag', 'Flag': 'CLEAR', 'Scope': 'Sector', 'Sector': 8, 'Message': 'CLEAR IN TRACK SECTOR 8'}}}, '2025-09-06T14:22:43.772Z']
 ['RaceControlMessages', {'Messages': {'13': {'Utc': '2025-09-06T14:22:44', 'Category': 'Flag', 'Flag': 'CLEAR', 'Scope': 'Sector', 'Sector': 2, 'Message': 'CLEAR IN TRACK SECTOR 8'}}}, '2025-09-06T14:22:43.772Z']
 
+From Mexico GP:
+['TrackStatus', {'Status': '1', 'Message': 'AllClear', '_kf': True}, '2025-10-24T18:45:45.052Z']
+
+
 ### RED Flag
 ['RaceControlMessages', {'Messages': {'50': {'Utc': '2025-07-05T11:33:58', 'Category': 'Flag', 'Flag': 'RED', 'Scope': 'Track', 'Message': 'RED FLAG'}}}, '2025-07-05T11:33:58.102Z']
+
+Based on yellow flag in Mexican GP, this is a guestimate:
+['TrackStatus', {'Status': '2', 'Message': 'Red', '_kf': True}, '2025-10-24T19:10:17.604Z']
 
 ### CHEQUERED Flag
 ['RaceControlMessages', {'Messages': {'14': {'Utc': '2025-07-05T14:27:49', 'Category': 'Flag', 'Flag': 'CHEQUERED', 'Scope': 'Track', 'Message': 'CHEQUERED FLAG'}}}, '2025-07-05T14:27:49.153Z']

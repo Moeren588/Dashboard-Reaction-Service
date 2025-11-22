@@ -6,6 +6,7 @@ Livetiming API to fetch the data real time.
 
 ![HA-Automation_3](https://github.com/user-attachments/assets/1aa65c1d-8c3a-40bb-9d64-06335587a05e)
 
+See the wiki for more in-depth details.
 
 ## Features
 * Sync smart lights with the F1 broadcast leader, matching their team colors.
@@ -26,37 +27,12 @@ To put it simply: it is a tool that I use to get an exact "here and now" picture
 * Smart lights/devices configured in Home Assistant (e.g., Philips Hue to respond to the events).
 
 ### Project Files
-Before running, you must create two configuration files (easiest is to duplicate the two template files in the project and remove the `_template` suffix):
+Before running, you must create two configuration files (easiest is to duplicate the two template files in the project and remove the `_template` suffix): `mqtt_config.py` and `config.py`
 
-1. `mqtt_config.py`: Holds your MQTT broker credentials.
-```python
-MQTT_BROKER_IP = "0.0.0.0" 
-MQTT_PORT = 1883 # For unsecure communication running over local network
-MQTT_USERNAME = "service_user_name"
-MQTT_PASSWORD = "your_strong_password" # MQTT password that's also present in your Home Assistant
-```
-2. `config.py`: Contains key variables for the service.
-```python
-CACHE_FILENAME = 'cache.txt'  # Important that this matches the one Fast-F1 Livetiming writes to
-
-PUBLISH_DELAY = 54
-
-SESSION_CACHING_ENABLED = True
-SESSION_CACHING_INTERVAL = 10
-```
 
 > [!NOTE]
-> **A Note on the `PUBLISH_DELAY`**
 > 
-> You might wonder why there's a delay between the script receiving a message and publishing it to MQTT. This is the most important setting for syncing the service with what you see on screen.
->
-> The official F1 timing data, which this tool uses via the FastF1 API, often arrives many seconds (some report up to a minute!) **before** you see the corresponding action on your F1TV or television broadcast. This is due to natural broadcast and streaming delays.
-> 
->The `PUBLISH_DELAY` variable lets you add a buffer to compensate for this. By setting a delay, you ensure that when your lights change color for a new leader or a safety car, it happens at the exact moment you see it on your screen, not seconds beforehand.
->
-> You'll need to fine-tune this value based on your specific broadcast: 
-> - A good-guess starting point is often between **50 and 60 seconds.** (based on personal experience)
-> - Remember, you can adjust this delay live using the **Delay Calibration** buttons in Home Assistant once the session has started.
+> The wiki contains more in-dept description of the `PUBLISH_DELAY` system.
 
 #### Caching
 To protect against unexpected crashes or interruptions, the service includes a session caching feature.
@@ -92,9 +68,25 @@ pip install -r requirements.txt
 Create the mqtt_config.py file as described in the Requirements section above and review config.py.
 
 ## Usage
-The service requires two separate processes running in two separate terminals.
+There are 2 ways of starting the service the new `pitwall` or the old 2 terminals
 
-### 1. Start the FastF1 Live Timing Client
+### Pitwall
+In `0.8` the `pitwall.py` was introduced: one script to run both services needed. This is the simplest way of starting up DRS as it will also shut down both services if one of them fails. running the `pitwall` script requires a session type argument and accepts optional flags. When running, the service will start writing and reading from the cache file defined in `config.py` and publishing events to your MQTT broker.
+
+**Syntax**:
+```bash
+python pitwall.py <session_type> [options]
+```
+
+**Example:**
+```bash
+python pitwall.py race --force-lead "Red Bull"
+```
+
+### The Old Way
+It is still possible to start the service "the old way" where you manually start both terminals.
+
+#### 1. Start the FastF1 Live Timing Client
 In your first terminal, activate the virtual environment and run the following command. This will connect to the F1 servers and start saving live data to the cache file.
 
 ```bash
@@ -105,8 +97,9 @@ python -m fastf1.livetiming save --append cache.txt
 >    The livetiming starts broadcasting around 5 min before event start. The connection times out after
 >    60s of no broadcasts. So be aware and not start the livetiming too early as it will cut your connection.
 
-### 2. Start the DRS Service
-In a second terminal, activate the virtual environment and run the `main.py` script. The command requires a session type argument and accepts optional flags. When running, the service will start reading from `cache.txt` (or file defined in `config.py`) and publishing events to your MQTT broker.
+#### 2. Start the DRS Service
+
+In a second terminal, activate the virtual environment and run the `main.py` script. The command requires a session type argument and accepts optional flags. When running, the service will start reading from the cache file defined in `config.py` and publishing events to your MQTT broker.
 
 **Syntax**:
 ```bash

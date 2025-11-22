@@ -14,7 +14,7 @@ from src.drs.mqtt_handler import MQTTHandler
 from src.drs.mqtt_topics import MqttTopics
 import src.drs.session_caching as session_caching
 
-DRS_VERSION = "0.7.0"
+DRS_VERSION = "0.8.0 PITWALL"
 
 SESSION_MAP = {
     'p' : 'practice',
@@ -46,6 +46,22 @@ def handle_periodic_caching(current_state: SessionState, last_cached_state: Sess
         return last_cached_state, current_time
     
     return last_cached_state, last_cached_time
+
+def handle_shutdown_caching(session_sate: SessionState):
+    """Handles KeyboardInterupt caching based on input"""
+    try:
+        session_caching.save_state(session_sate)
+
+        retain_cache = input("Do you want to retain the session cache (do not keep if session is done)? (y/n): ").lower()
+
+        if retain_cache != 'y':
+            session_caching.delete_state_cache()
+
+    except KeyboardInterrupt:
+        logging.warning(f'Keyboard interrupt')
+
+    except Exception as e:
+        logging.error(f"Error during shutdown caching: {e}")
 
 
 def load_drs_data(filename : str = "drs_data.json") -> dict:
@@ -127,6 +143,7 @@ def main_loop(session_state:SessionState, mqtt: MQTTHandler, command_queue: queu
                     f1_utils.process_session_data_line(line, session_state, mqtt)
                     race_lead_process(line, session_state, mqtt)
                     f1_utils.process_race_control_line(line, session_state, mqtt)
+                    f1_utils.process_track_status_line(line, session_state, mqtt)
                 except Exception as e:
                     logging.error(f"Error processing line: {e}")
 
@@ -203,12 +220,9 @@ if __name__ == "__main__":
     try:
         main_loop(session_state, mqtt, command_queue)
     except KeyboardInterrupt:
-        session_caching.save_state(session_state)
+        handle_shutdown_caching(session_state)
         logging.info("Service stopped by user.")
         logging.shutdown()
-        retain_cache = input("Do you want to retain the session cache (do not keep if session is done)? (y/n): ").lower()
-        if retain_cache != 'y':
-            session_caching.delete_state_cache()
     except FileNotFoundError:
         logging.error(f"[FATAL] Data file not found: {CACHE_FILENAME}")
     except Exception as e:

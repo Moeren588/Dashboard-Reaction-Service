@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+## [0.8.0] - 2025-11-22 (PITWALL release)
+
+### ADDED
+- Processing of `TrackStatus`:
+  - in `FP1` They changed yellow flags from `RaceControl` to `TrackStatus`
+- Clearing of yellow flag sectors when returning to green (as a just in case missed)
+- A combined starter script (starts both livetiming and DRS) called `pitwall.py`
+
+### CHANGED
+- Moved session retention on shutdown to its own function
+- Updates to `README.md` as work on moving more in-depth info into the Github Wiki has started
+- improved docstrings to following modules:
+  - `f1_utils.py`
+
 ## [0.7.0] - 2025-10-18 (FREEDOM release)
 
 ### ADDED
@@ -19,10 +33,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### CHANGED
 - Moving business logic in `main.py` to dedicated functions (#16)
-- `--Force-Lead` (`-fl`) is now **required** to provide for Races (Austin SR T1 is a great example for why the service needs to know how to reset after a Safety Car)
+- `--force-lead` (`-fl`) is now **required** to provide for Races (Austin SR T1 is a great example for why the service needs to know how to reset after a Safety Car)
 
 ### REMOVED
 - `config.py` from being tracked in the git repo
+
+### FIXED
+- `--force-lead` being very fragile in the accepted inputs.
 
 ## [0.6.2] - 2025-10-11
 
