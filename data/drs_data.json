@@ -1,10 +1,10 @@
 {
     "teams": {
         "red_bull": {
-            "name": "Red Bull",
+            "name": "Red Bull Racing",
             "driver_numbers": [
-                "1",
-                "22"
+                "3",
+                "6"
             ],
             "color_hex": "4781D7"
         },
@@ -27,7 +27,7 @@
         "mclaren": {
             "name": "McLaren",
             "driver_numbers": [
-                "4",
+                "1",
                 "81"
             ],
             "color_hex": "F47600"
@@ -51,8 +51,8 @@
         "racing_bulls": {
             "name": "RB",
             "driver_numbers": [
-                "6",
-                "30"
+                "30",
+                "41"
             ],
             "color_hex": "6C98FF"
         },
@@ -64,13 +64,13 @@
             ],
             "color_hex": "9C9FA2"
         },
-        "sauber": {
-            "name": "Sauber",
+        "audi": {
+            "name": "Audi",
             "driver_numbers": [
                 "5",
                 "27"
             ],
-            "color_hex": "01C00E"
+            "color_hex": "F50537"
         },
         "williams": {
             "name": "Williams",
@@ -79,17 +79,35 @@
                 "55"
             ],
             "color_hex": "1868DB"
+        },
+        "cadillac": {
+            "name": "Cadillac",
+            "driver_numbers": [
+                "11",
+                "77"
+            ],
+            "color_hex": "D3D3D3"
         }
     },
     "drivers": {
         "1": {
+            "name": "Lando Norris",
+            "abbreviation": "NOR",
+            "team_key": "mclaren"
+        },
+        "81": {
+            "name": "Oscar Piastri",
+            "abbreviation": "PIA",
+            "team_key": "mclaren"
+        },
+        "3": {
             "name": "Max Verstappen",
             "abbreviation": "VER",
             "team_key": "red_bull"
         },
-        "22": {
-            "name": "Yuki Tsunoda",
-            "abbreviation": "TSU",
+        "6": {
+            "name": "Isack Hadjar",
+            "abbreviation": "HAD",
             "team_key": "red_bull"
         },
         "16": {
@@ -99,7 +117,7 @@
         },
         "44": {
             "name": "Lewis Hamilton",
-            "abbreviation": "LEW",
+            "abbreviation": "HAM",
             "team_key": "ferrari"
         },
         "12": {
@@ -111,16 +129,6 @@
             "name": "George Russell",
             "abbreviation": "RUS",
             "team_key": "mercedes"
-        },
-        "4": {
-            "name": "Lando Norris",
-            "abbreviation": "NOR",
-            "team_key": "mclaren"
-        },
-        "81": {
-            "name": "Oscar Piastri",
-            "abbreviation": "PIA",
-            "team_key": "mclaren"
         },
         "14": {
             "name": "Fernando Alonso",
@@ -142,18 +150,18 @@
             "abbreviation": "COL",
             "team_key": "alpine"
         },
-        "6": {
-            "name": "Isack Hadjar",
-            "abbreviation": "HAD",
-            "team_key": "racing_bulls"
-        },
         "30": {
             "name": "Liam Lawson",
             "abbreviation": "LAW",
             "team_key": "racing_bulls"
         },
+        "41": {
+            "name": "Arvid Lindblad",
+            "abbreviation": "LIN",
+            "team_key": "racing_bulls"
+        },
         "31": {
-            "name": "Estaban Ocon",
+            "name": "Esteban Ocon",
             "abbreviation": "OCO",
             "team_key": "haas"
         },
@@ -165,12 +173,12 @@
         "5": {
             "name": "Gabriel Bortoleto",
             "abbreviation": "BOR",
-            "team_key": "sauber"
+            "team_key": "audi"
         },
         "27": {
-            "name": "Nico Hulkenberg",
+            "name": "Nico Hülkenberg",
             "abbreviation": "HUL",
-            "team_key": "sauber"
+            "team_key": "audi"
         },
         "55": {
             "name": "Carlos Sainz",
@@ -181,6 +189,16 @@
             "name": "Alexander Albon",
             "abbreviation": "ALB",
             "team_key": "williams"
+        },
+        "11": {
+            "name": "Sergio Perez",
+            "abbreviation": "PER",
+            "team_key": "cadillac"
+        },
+        "77": {
+            "name": "Valtteri Bottas",
+            "abbreviation": "BOT",
+            "team_key": "cadillac"
         }
     }
 }
