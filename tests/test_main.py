@@ -14,7 +14,7 @@ from src.drs.session_state import SessionState
 
 MOCK_DRS_DATA = {
     "drivers": {
-        "1" : {'abbreviation' : 'VER', 'team_key' : 'red_bull'},
+        "3" : {'abbreviation' : 'VER', 'team_key' : 'red_bull'},
         "10" : {'abbreviation' : 'GAS', 'team_key' : 'alpine'},
         "16" : {'abbreviation' : 'LEC', 'team_key' : 'ferrari'},
         "55" : {'abbreviation' : 'SAI', 'team_key' : 'williams'}

@@ -19,7 +19,7 @@ from src.drs.session_state import SessionState
 
 MOCK_DRS_DATA = {
     "drivers": {
-        "1" : {'abbreviation' : 'VER', 'team_key' : 'red_bull'},
+        "3" : {'abbreviation' : 'VER', 'team_key' : 'red_bull'},
         "10" : {'abbreviation' : 'GAS', 'team_key' : 'alpine'},
         "16" : {'abbreviation' : 'LEC', 'team_key' : 'ferrari'},
         "55" : {'abbreviation' : 'SAI', 'team_key' : 'williams'}
@@ -89,7 +89,7 @@ class TestProcessLapTimeLine:
         """Tests that a slower lap do not trigger any changes in lead time"""
         state.session_type = 'qualifying'
         state.set_fastest_lap(lap_time=timedelta(minutes=1, seconds=20), driver='VER', team='Red Bull')
-        state.set_session_lead(driver='VER', driver_number='1', team='Red Bull')
+        state.set_session_lead(driver='VER', driver_number='3', team='Red Bull')
         new_fastest_lap_line = "['TimingData', {'Lines': {'10': {'NumberOfLaps': 3, 'Sectors': {'2': {'Value': '24.386'}}, 'Speeds': {'FL': {'Value': '250'}}, 'BestLapTime': {'Value': '1:28.552', 'Lap': 2}, 'LastLapTime': {'Value': '1:28.552', 'OverallFastest': True, 'PersonalFastest': True}}}}, '2025-07-05T10:38:19.212Z']"
 
         # Execute
@@ -363,7 +363,7 @@ def test_red_flag_ending_scenario(state: SessionState, mock_mqtt: Mock):
     mock_mqtt.queue_message.assert_called_with(MqttTopics.FLAG_TOPIC, expected_payload)
 
 
-TOP_THREE_LINE_VER_LEAD = "['TopThree', {'Lines': {'0': {'RacingNumber': '1', 'Tla': 'VER', 'BroadcastName': 'M VERSTAPPEN', 'FullName': 'Max VERSTAPPEN', 'FirstName': 'Max', 'LastName': 'Verstappen', 'Reference': 'MAXVER01', 'Team': 'Red Bull Racing', 'TeamColour': '4781D7', 'LapTime': '2:42.616'}, '1': {'RacingNumber': '81', 'Tla': 'PIA', 'BroadcastName': 'O PIASTRI', 'FullName': 'Oscar PIASTRI', 'FirstName': 'Oscar', 'LastName': 'Piastri', 'Reference': 'OSCPIA01', 'Team': 'McLaren', 'TeamColour': 'F47600', 'LapTime': '2:43.087', 'DiffToAhead': '', 'DiffToLeader': ''}}}, '2025-07-06T14:49:09.888Z']"
+TOP_THREE_LINE_VER_LEAD = "['TopThree', {'Lines': {'0': {'RacingNumber': '3', 'Tla': 'VER', 'BroadcastName': 'M VERSTAPPEN', 'FullName': 'Max VERSTAPPEN', 'FirstName': 'Max', 'LastName': 'Verstappen', 'Reference': 'MAXVER01', 'Team': 'Red Bull Racing', 'TeamColour': '4781D7', 'LapTime': '2:42.616'}, '1': {'RacingNumber': '81', 'Tla': 'PIA', 'BroadcastName': 'O PIASTRI', 'FullName': 'Oscar PIASTRI', 'FirstName': 'Oscar', 'LastName': 'Piastri', 'Reference': 'OSCPIA01', 'Team': 'McLaren', 'TeamColour': 'F47600', 'LapTime': '2:43.087', 'DiffToAhead': '', 'DiffToLeader': ''}}}, '2025-07-06T14:49:09.888Z']"
 
 
 class TestProcessRaceLeadLine:
@@ -379,13 +379,13 @@ class TestProcessRaceLeadLine:
 
         # Asserts
         ## First state check
-        assert state.current_session_lead.driver_number == "1", "Should be 1 for Verstappen"
+        assert state.current_session_lead.driver_number == "3", "Should be 3 for Verstappen"
         assert state.current_session_lead.driver == "VER", "Should be VER for Verstappen"
         assert state.current_session_lead.team == "Red Bull", "Should be Red Bull"
 
         ## Then check MQTT
         mock_mqtt.queue_message.assert_called_once()
-        expected_payload = json.dumps({"driver" : "VER", "driver_number" : "1", "team" : "Red Bull", "team_color" : "4781D7"})
+        expected_payload = json.dumps({"driver" : "VER", "driver_number" : "3", "team" : "Red Bull", "team_color" : "4781D7"})
         mock_mqtt.queue_message.assert_called_with(MqttTopics.LEADER_TOPIC, expected_payload)
 
 
@@ -393,12 +393,12 @@ class TestProcessRaceLeadLine:
         """
         Test that no action is taken if the leader has not changed.
         """
-        state.set_session_lead(driver="VER", driver_number="1", team="Red Bull")
+        state.set_session_lead(driver="VER", driver_number="3", team="Red Bull")
 
         process_race_lead_line(TOP_THREE_LINE_VER_LEAD, state, mock_mqtt)
 
         # State should be unchanged from the pre-configured state
-        assert state.current_session_lead.driver_number == "1", "Should be 1 for Verstappen"
+        assert state.current_session_lead.driver_number == "3", "Should be 3 for Verstappen"
         assert state.current_session_lead.driver == "VER", "Should be VER for Verstappen"
         assert state.current_session_lead.team == "Red Bull", "Should be Red Bull"
         mock_mqtt.queue_message.assert_not_called()

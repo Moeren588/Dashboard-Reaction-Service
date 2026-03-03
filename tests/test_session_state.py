@@ -12,7 +12,7 @@ from src.drs.session_state import SessionState
 
 MOCK_DRS_DATA = {
     "drivers": {
-        "1" : {'abbreviation' : 'VER', 'team_key' : 'red_bull'},
+        "3" : {'abbreviation' : 'VER', 'team_key' : 'red_bull'},
         "10" : {'abbreviation' : 'GAS', 'team_key' : 'alpine'},
         "16" : {'abbreviation' : 'LEC', 'team_key' : 'ferrari'},
         "55" : {'abbreviation' : 'SAI', 'team_key' : 'williams'}
@@ -83,9 +83,9 @@ def test_clear_yellow_flags_empty_set(state: SessionState):
 
 def test_set_session_lead(state: SessionState):
     """Tests setting the session lead"""
-    state.set_session_lead(driver='VER', driver_number='1', team='Red Bull')
+    state.set_session_lead(driver='VER', driver_number='3', team='Red Bull')
     assert state.current_session_lead.driver == 'VER'
-    assert state.current_session_lead.driver_number == '1'
+    assert state.current_session_lead.driver_number == '3'
     assert state.current_session_lead.team == 'Red Bull'
 
 def test_set_fasest_lap(state: SessionState):

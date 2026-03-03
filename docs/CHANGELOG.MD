@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### CHANGED
 - Updated `drs_data` to reflect the new 2026 season (thank you to [staglech](https://github.com/staglech))
+- Tests and debugs updated to reflect new driver numbers
 
 ## [0.8.0] - 2025-11-22 (PITWALL release)
 
