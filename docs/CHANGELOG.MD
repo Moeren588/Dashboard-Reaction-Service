@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+### ADDED
+- Added how a `-st`/`--start_time` and `-b`/`--buffer` to `pitwall.py` startup arguments allowing scheduled startups
+- Added a `args_validation.py` file which validates the arguments, catching errors in arg parsing *before* service startup
+
+### CHANGED
+- Refactored the way `main.py` and `pitwall.py` handles argument parsing
+
 ## [0.9.0] - 2026-03-03 (2026 Release)
 
 ### CHANGED

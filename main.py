@@ -1,6 +1,6 @@
 import time
 import logging
-import argparse
+import sys
 import copy
 import json
 import queue
@@ -9,26 +9,13 @@ from pathlib import Path
 from config import CACHE_FILENAME, PUBLISH_DELAY, SESSION_CACHING_ENABLED, SESSION_CACHING_INTERVAL
 import mqtt_config
 from src.drs.session_state import SessionState
+from src.drs.args_validation import get_shared_parser, validate_drs_args, SESSION_MAP
 import src.drs.f1_utils as f1_utils
 from src.drs.mqtt_handler import MQTTHandler
 from src.drs.mqtt_topics import MqttTopics
 import src.drs.session_caching as session_caching
 
 DRS_VERSION = "0.9.0 2026"
-
-SESSION_MAP = {
-    'p' : 'practice',
-    'fp' : 'practice',
-    'practice' : 'practice',
-    'q' : 'qualifying',
-    'sq' : 'qualifying',
-    'qualifying' : 'qualifying',
-    'sprint qualifying' : 'qualifying',  
-    'r' : 'race',
-    'sr' : 'race',
-    'race' : 'race',
-    'sprint race' : 'race',
-    }
 
 
 # Main logic
@@ -63,7 +50,6 @@ def handle_shutdown_caching(session_sate: SessionState):
     except Exception as e:
         logging.error(f"Error during shutdown caching: {e}")
 
-
 def load_drs_data(filename : str = "drs_data.json") -> dict:
     """Loads the static F1 driver and team data from the JSON file"""
     data_path = Path(__file__).parent / "data" / filename
@@ -81,15 +67,7 @@ def setup(session_type: str) -> tuple[SessionState, MQTTHandler, queue.Queue]:
     """Handles all initial setup and object creation."""
     normalized_session = SESSION_MAP.get(session_type.lower())
 
-    if not normalized_session:
-        logging.error(f"Error: Invalid session type '{session_type}'.")
-        logging.error(f"Valid options are: {', '.join(SESSION_MAP.keys())}")
-        exit(1)
-
     drs_data = load_drs_data()
-    if not drs_data:
-        logging.error("Could not load DRS data. Exiting.")
-        exit(1)
 
     session_state = SessionState(session_type=normalized_session, teams_data=drs_data.get("teams", {}), drivers_data=drs_data.get("drivers", {}))
 
@@ -182,20 +160,11 @@ def apply_forced_lead(session_state: SessionState, mqtt: MQTTHandler, team_key: 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     # Parser
-    parser = argparse.ArgumentParser(description="F1 Dahsboard Reaction Service")
-    parser.add_argument(
-        "session_type",
-        help="The type of session to monitor: practice, free practice, qualifying, sprint qualifying, race, sprint race"
-    )
-    parser.add_argument(
-        '-fl', '--force-lead',
-        metavar='TEAM_NAME',
-        type=str,
-        default=None,
-        help="(Optional) Force an initial leader state on startup. E.g., --force-leader Ferrari",
-    )
-
+    parser = get_shared_parser()
     args = parser.parse_args()
+
+    if not validate_drs_args(args.session_type, args.force_lead):
+        sys.exit(1)
 
     session_state, mqtt, command_queue = setup(args.session_type)
     resumed_state = session_caching.load_state()
@@ -206,16 +175,6 @@ if __name__ == "__main__":
             session_state = resumed_state
 
     apply_forced_lead(session_state, mqtt, args.force_lead)
-
-    if session_state.session_type == 'race' and not session_state.current_session_lead.team:
-        logging.error("="*50)
-        logging.error("FATAL: Starting a 'race' session with no leader set.")
-        logging.error("Please provide the P1 team using the --force-lead (-fl) argument.")
-        logging.error('Example: python main.py -fl "Red Bull"')
-        logging.error("="*50)
-
-        mqtt.disconnect()
-        exit(1)
 
     try:
         main_loop(session_state, mqtt, command_queue)
