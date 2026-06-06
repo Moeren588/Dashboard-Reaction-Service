@@ -138,6 +138,13 @@ def main_loop(session_state:SessionState, mqtt: MQTTHandler, command_queue: queu
                     logging.info("Resetting for next Qualifying session")
                     session_state.reset_for_next_quali_segment()
 
+            if (session_state.race_state == 'CHEQUERED'
+                and session_state.cooldown_active):
+                if (time.monotonic() - session_state.session_end_time) > 180:
+                    logging.info(f"Session completed, initiating shutdown ...")
+                    session_caching.delete_state_cache()
+                    sys.exit(0)
+
 def apply_forced_lead(session_state: SessionState, mqtt: MQTTHandler, team_key: str | None):
     """Force sets the lead on start if one is provided"""
     if not team_key: 

@@ -229,10 +229,18 @@ def process_race_control_line(line: str, state: SessionState, mqtt_handler: MQTT
                         if len(state.yellow_flags) == 0:
                             return_to_green(state, mqtt_handler, "GREEN FLAG, ALL YELLOW CLEARED")
                 # 🏁 CHEQUERED flag, important for quali
-                elif flag == 'CHEQUERED' and state.session_type == 'qualifying' and not state.cooldown_active:
-                    logging.info(f'CHEQUERED Flag for {state.quali_session}')
-                    state.set_cooldown_active(True)
-                    state.set_session_end_time(time.monotonic())
+                elif flag == 'CHEQUERED':
+                    if state.session_type == 'qualifying' and state.quali_session != 'Q3' and not state.cooldown_active:
+                        logging.info(f'CHEQUERED Flag for {state.quali_session}')
+                        state.set_cooldown_active(True)
+                        state.set_session_end_time(time.monotonic())
+                    else:
+                        state.set_race_state("CHEQUERED")
+                        logging.info(f"CHEQUERED FLAG! Starting cooldown period")
+                        if state.session_type == 'race':
+                            mqtt_handler.queue_message(MqttTopics.FLAG_TOPIC, payload)
+                        state.set_cooldown_active(True)
+                        state.set_session_end_time(time.monotonic())
             ## --- SAFETY CAR ---
             elif msg_data['Category'] == 'SafetyCar':
                 if msg_data['Status'] == 'DEPLOYED' and state.race_state != "SAFETY CAR":
