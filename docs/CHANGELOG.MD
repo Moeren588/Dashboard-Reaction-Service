@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### CHANGED
 - Refactored the way `main.py` and `pitwall.py` handles argument parsing
+- `README` got info around the new Authentication Workflow now required for the livetiming API
+- `fastf1` upgraded to version `3.8.3`
 
 ## [0.9.0] - 2026-03-03 (2026 Release)
 

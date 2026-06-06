@@ -26,6 +26,9 @@ To put it simply: it is a tool that I use to get an exact "here and now" picture
 * An MQTT Broker (the Mosquitto Broker add-on for Home Assistant is a great choice).
 * Smart lights/devices configured in Home Assistant (e.g., Philips Hue to respond to the events).
 
+### F1 TV subscription
+The FastF1 livetiming API now requires an active F1TV subscription to function; read more about this in the installation and setup.
+
 ### Project Files
 Before running, you must create two configuration files (easiest is to duplicate the two template files in the project and remove the `_template` suffix): `mqtt_config.py` and `config.py`
 
@@ -66,6 +69,20 @@ pip install -r requirements.txt
 
 ### 4. Create Configuration Files
 Create the mqtt_config.py file as described in the Requirements section above and review config.py.
+
+### 5. Authenticate your F1 TV Subscription
+FastF1 Livetiming API now requires an active subscription to access the live data stream. Run the following command and follow the instructions provided:
+
+```bash
+python -m fastf1 auth f1tv --authenticate
+```
+You can check the current status of your authentication status running this command:
+
+```bash
+python -m fastf1 auth f1tv --status
+```
+
+For more info read the official FastF1 documentation [here](https://docs.fastf1.dev/api_reference/accounts_auth.html)
 
 ## Usage
 There are 2 ways of starting the service the new `pitwall` or the old 2 terminals
