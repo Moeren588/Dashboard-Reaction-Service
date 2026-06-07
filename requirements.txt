@@ -1,2 +1,2 @@
-fastf1==3.5.3
+fastf1==3.8.3
 paho-mqtt==2.1.0
