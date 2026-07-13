@@ -26,6 +26,9 @@ To put it simply: it is a tool that I use to get an exact "here and now" picture
 * An MQTT Broker (the Mosquitto Broker add-on for Home Assistant is a great choice).
 * Smart lights/devices configured in Home Assistant (e.g., Philips Hue to respond to the events).
 
+### F1 TV subscription
+The FastF1 livetiming API now requires an active F1TV subscription to function; read more about this in the installation and setup.
+
 ### Project Files
 Before running, you must create two configuration files (easiest is to duplicate the two template files in the project and remove the `_template` suffix): `mqtt_config.py` and `config.py`
 
@@ -67,6 +70,20 @@ pip install -r requirements.txt
 ### 4. Create Configuration Files
 Create the mqtt_config.py file as described in the Requirements section above and review config.py.
 
+### 5. Authenticate your F1 TV Subscription
+FastF1 Livetiming API now requires an active subscription to access the live data stream. Run the following command and follow the instructions provided:
+
+```bash
+python -m fastf1 auth f1tv --authenticate
+```
+You can check the current status of your authentication status running this command:
+
+```bash
+python -m fastf1 auth f1tv --status
+```
+
+For more info read the official FastF1 documentation [here](https://docs.fastf1.dev/api_reference/accounts_auth.html)
+
 ## Usage
 There are 2 ways of starting the service the new `pitwall` or the old 2 terminals
 
@@ -80,8 +97,11 @@ python pitwall.py <session_type> [options]
 
 **Example:**
 ```bash
-python pitwall.py race --force-lead "Red Bull"
+python pitwall.py race --force-lead "Red Bull" --start-time 15:00
 ```
+
+#### Scheduled startup
+In version `0.10` pitwall got functionality to set a scheduled startup time. This allows you to set when the session is going to start in your local time, and the `pitwall` will wait with starting up until a couple of minutes before session starts. This removes the need to time the starts yourself (where too early starts will end the connection due to no signal).
 
 ### The Old Way
 It is still possible to start the service "the old way" where you manually start both terminals.
@@ -116,9 +136,11 @@ python main.py qualifying --force-lead "Ferrari"
   * `practice`(or `p`, `fp`)
   * `qualifying`(or `q`, `"sprint qualifying"`, `sq`) 
   * `race`(or `p`, `"sprint race"`, `sr`) 
-* `--force-lead <TEAM_NAME>`**(Conditionally Required):** Sets an initial leader state on startup. This can be smart to use during races to ensure the leader is set in the system from the start.
+* `--force-lead <TEAM_NAME>` | `-fl <TEAM_NAME>` **(Conditionally Required):** Sets an initial leader state on startup. This can be smart to use during races to ensure the leader is set in the system from the start.
   * **Optional** for `practice` and `qualifying`
   * **Required** for `race` sessions **unless** you are resuming from a session cache.
+* `--start-time <HH:mm>` || `-st <HH:mm>` **(Pitwall Optional):** Tells pitwall the start time of the session in your local time. Pitwall will only do a preliminary check of the any input arguments, but hold off on the startup sequence until a couple of minutes before session start.
+  * `--buffer m` | `-b m` **(Optional):** The buffer in minutes before pitwall initiates its startup sequence. This defaults to 2 minutes before. Keep in mind that starting too early might run into the issue of no traffic going over the fastf1 API endpoint yet, and 60 seconds of no signal will cause the API endpoint to force close its connection.
 
 > [!IMPORTANT]
 > **Why is `--force-lead` required for races?**
