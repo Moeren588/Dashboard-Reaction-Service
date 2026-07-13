@@ -97,8 +97,11 @@ python pitwall.py <session_type> [options]
 
 **Example:**
 ```bash
-python pitwall.py race --force-lead "Red Bull"
+python pitwall.py race --force-lead "Red Bull" --start-time 15:00
 ```
+
+#### Scheduled startup
+In version `0.10` pitwall got functionality to set a scheduled startup time. This allows you to set when the session is going to start in your local time, and the `pitwall` will wait with starting up until a couple of minutes before session starts. This removes the need to time the starts yourself (where too early starts will end the connection due to no signal).
 
 ### The Old Way
 It is still possible to start the service "the old way" where you manually start both terminals.
@@ -133,9 +136,11 @@ python main.py qualifying --force-lead "Ferrari"
   * `practice`(or `p`, `fp`)
   * `qualifying`(or `q`, `"sprint qualifying"`, `sq`) 
   * `race`(or `p`, `"sprint race"`, `sr`) 
-* `--force-lead <TEAM_NAME>`**(Conditionally Required):** Sets an initial leader state on startup. This can be smart to use during races to ensure the leader is set in the system from the start.
+* `--force-lead <TEAM_NAME>` | `-fl <TEAM_NAME>` **(Conditionally Required):** Sets an initial leader state on startup. This can be smart to use during races to ensure the leader is set in the system from the start.
   * **Optional** for `practice` and `qualifying`
   * **Required** for `race` sessions **unless** you are resuming from a session cache.
+* `--start-time <HH:mm>` || `-st <HH:mm>` **(Pitwall Optional):** Tells pitwall the start time of the session in your local time. Pitwall will only do a preliminary check of the any input arguments, but hold off on the startup sequence until a couple of minutes before session start.
+  * `--buffer m` | `-b m` **(Optional):** The buffer in minutes before pitwall initiates its startup sequence. This defaults to 2 minutes before. Keep in mind that starting too early might run into the issue of no traffic going over the fastf1 API endpoint yet, and 60 seconds of no signal will cause the API endpoint to force close its connection.
 
 > [!IMPORTANT]
 > **Why is `--force-lead` required for races?**
